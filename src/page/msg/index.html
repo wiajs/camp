@@ -1,0 +1,81 @@
+<div class="page">
+  <div class="toolbar tabbar toolbar-top top-bar">
+    <div class="toolbar-inner">
+      <a name="btnChoose" href="" class="tab-link"></a>
+      <span>消息</span>
+      <a name="btnAdd" href="" class="tab-link"></a>
+    </div>
+  </div>
+  <!-- Bottom Toolbar -->
+  <div class="toolbar tabbar tabbar-labels toolbar-bottom"></div>
+
+  <!-- Scrollable page content -->
+  <div class="page-content">
+    <div name="dvSel" class="list">
+      <ul>
+        <li>
+          <a href="" name="btnMine" class="item-link item-content">
+            <div class="item-media">
+              <i class="icon iconfont icondingdan"></i>
+            </div>
+            <div class="item-inner">
+              <div class="item-title">我的应用</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="" name="btnFav" class="item-link item-content">
+            <div class="item-media">
+              <i class="icon iconfont iconicon_dispose"></i>
+            </div>
+            <div class="item-inner">
+              <div class="item-title">我的收藏</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="" name="btnUse" class="item-link item-content">
+            <div class="item-media">
+              <i class="icon iconfont iconxiangmu"></i>
+            </div>
+            <div class="item-inner">
+              <div class="item-title">我的使用</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="" name="btnMore" class="item-link item-content">
+            <div class="item-media">
+              <i class="icon iconfont iconfapiao"></i>
+            </div>
+            <div class="item-inner">
+              <div class="item-title">更多应用</div>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="list app-list" name="dvApp">
+      <div class="list-label">推荐应用</div>
+      <ul>
+        <li name="app-tp" class="swipeout">
+          <a href="" appid="${r.id}" class="item-link item-content">
+            <div class="item-media">
+              <img src="${r.icon}" />
+            </div>
+            <div class="item-inner">
+              <div class="item-title">
+                ${r.title}
+                <div class="item-footer">${r.brief}</div>
+              </div>
+              <div class="item-after">
+                ${r.count}次
+                <div class="item-footer">${r.cat}</div>
+              </div>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

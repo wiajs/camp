@@ -1,0 +1,268 @@
+#wia-view {
+  --f7-list-font-size: 16px;
+  --f7-input-font-size: 16px;
+  --f7-label-font-size: 16px;
+  --f7-inline-label-font-size: 16px;
+  --f7-block-margin-vertical: 8px;
+  --f7-block-title-font-weight: normal;
+  --f7-chip-font-size: 15px;
+  --f7-list-margin-vertical: 0px;
+
+  --f7-page-master-width: 250px;
+
+  .inline-labels,
+  .inline-label {
+    .item-inner {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+    }
+  }
+
+  // pc 需从 ios 复制 颜色定义，md 颜色定义独立于 ios
+  --f7-card-bg-color: #fff;
+  --f7-card-expandable-bg-color: #fff;
+  --f7-card-outline-border-color: rgba(0, 0, 0, 0.12);
+  --f7-card-header-border-color: rgba(0, 0, 0, 0.1);
+  --f7-card-footer-border-color: rgba(0, 0, 0, 0.1);
+
+  --f7-input-text-color: #000000;
+  --f7-input-info-text-color: rgba(0, 0, 0, 0.45);
+  --f7-input-clear-button-color: rgba(0, 0, 0, 0.45);
+  --f7-input-outline-border-color: #bbb;
+
+  // 输入边框只出现在 input 部分，.item-content.item-input-outline 会出现外框
+  .item-input-outline .item-input-wrap:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--f7-input-outline-border-color);
+    border-radius: var(--f7-input-outline-border-radius);
+    transition-duration: 0.2s;
+    pointer-events: none;
+  }
+
+  // focus 边框变色，补上 .item-input-wrap
+  .input-outline.input-focused:after,
+  .item-input-outline.item-input-focused .item-input-wrap:after {
+    border-width: 2px;
+    border-color: var(--f7-input-outline-focused-border-color, var(--f7-theme-color));
+  }
+
+
+  // PC Row行排列，类似手机 List 竖向排列
+  .row {
+    --f7-input-padding-left: 8px;
+    --f7-input-padding-right: 0px;
+    --f7-button-border-radius: 5px;
+    --f7-inline-label-font-size: 14px;
+    --f7-input-font-size: 14px;
+    --f7-list-item-padding-vertical: 2px;
+    --f7-list-item-min-height: 38px;
+    --f7-input-outline-padding-horizontal: 8px;
+    --f7-input-outline-border-radius: 4px;
+    --f7-input-height: 28px;
+
+    input[type='date'],
+    input[type='datetime-local'],
+    input[type='email'],
+    input[type='month'],
+    input[type='number'],
+    input[type='password'],
+    input[type='search'],
+    input[type='tel'],
+    input[type='text'],
+    input[type='time'],
+    input[type='url'],
+    select {
+      width: 100%;
+      height: var(--f7-input-height);
+      color: var(--f7-input-text-color);
+      font-size: var(--f7-input-font-size);
+      background-color: var(--f7-input-bg-color, transparent);
+      padding-left: var(--f7-input-padding-left);
+      padding-right: var(--f7-input-padding-right);
+    }
+
+    // 内容，标签、输入框
+    .item-content {
+      --f7-input-height: 28px;
+      text-align: center;
+      // 影响行高
+      padding: 8px;
+      // margin-bottom: 10px;
+
+      // min-width: 16vw;
+      // 按行横向两端对齐等距排列
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      // 图标
+      // .item-media
+
+      // 标题和输入
+      .item-inner {
+        flex: auto; // 最大化
+        min-width: 50px;
+
+        // 输入层撑满
+        .item-input-wrap {
+          flex: auto;
+          // display: inline-block;
+          position: relative; // 便于输入框定位
+        }
+
+        button {
+          align-self: flex-end;
+          margin-right: 16px;
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  .flex-left {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .flex-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .flex-top {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .flex-bootom {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .flex-around {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .flex-row {
+    flex-direction: row;
+  }
+
+  .flex-col {
+    flex-direction: column;
+  }
+
+  .rotate-90 {
+    transform: rotate(90deg); //scale(1.2);
+  }
+
+  .rotate-180 {
+    transform: rotate(180deg); //scale(1.2);
+  }
+
+  .rotate-270 {
+    transform: rotate(270deg); //scale(1.2);
+  }
+
+  .rotate-360 {
+    transform: rotate(360deg); //scale(1.2);
+  }
+
+  .block-title {
+    --f7-block-margin-vertical: 10px; // 35px
+    --f7-block-padding-horizontal: 10px; // 16px
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .block {
+    --f7-block-margin-vertical: 10px; // 35px
+    --f7-block-padding-horizontal: 10px; // 16px
+  }
+
+  // 顶部条
+  .top-bar {
+    --f7-bars-translucent-opacity: 1;
+    --f7-bars-bg-color-rgb: 50, 150, 250;
+    background-color: #3296fa;
+    color: #fff;
+    font-size: 16px;
+    --f7-tabbar-icon-size: 17px;
+    --f7-tabbar-labels-height: 44px;
+    --f7-toolbar-inner-padding-left: 10px;
+    --f7-toolbar-inner-padding-right: 12px;
+
+    &::after {
+      content: none;
+    }
+
+    .toolbar-inner {
+      .tab-link {
+        flex-direction: row;
+      }
+
+      // first-child 不对
+      a:first-of-type {
+        color: #fff;
+        width: 20px;
+      }
+
+      span {
+        font-size: 18px;
+        flex: auto;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      a:last-of-type {
+        color: #fff;
+        width: 40px;
+      }
+    }
+  }
+
+  // 底部工具条
+  .toolbar-bottom {
+    --f7-toolbar-height: 44px;
+
+    .toolbar-inner .tab-link {
+      i.icon {
+        height: 22px;
+        font-size: 22px;
+        line-height: 22px;
+      }
+
+      span.tabbar-label {
+        font-size: 11px;
+        margin-top: 2px;
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+#wiapage-id {
+  // 引入 navbar 样式
+  @import '../../part/navbar.less';
+
+  --f7-list-font-size: 16px;
+  --f7-input-font-size: 16px;
+  --f7-inline-label-font-size: 16px;
+  --f7-block-margin-vertical: 8px;
+  --f7-block-title-font-weight: normal;
+  --f7-chip-font-size: 15px;
+  --f7-list-link-pressed-bg-color: #fff;
+
+  .toolbar-bottom {
+    .toolbar-inner {
+      justify-content: center;
+      background-color: #44aaff;
+      font-size: 20px;
+      a {
+        color: #fff;
+      }
+    }
+  }
+  .list.inline-labels {
+    margin: 10px 0px 0px 0px;
+    // emile 20/05/16
+    .avatar {
+      .item-inner {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        .item-after > div {
+          flex: none;
+          width: 86px;
+          height: 86px;
+          border-radius: 10%;
+        }
+      }
+    }
+
+    .item-label {
+      align-self: auto;
+      width: 10vw;
+      color: #666;
+      span {
+        color: red;
+      }
+    }
+  }
+  .card {
+    .card-footer {
+      justify-content: flex-end;
+      button {
+        width: 100px;
+        margin: 0 8px;
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+@import '../../config/f7.vars.less';
+// 引入 messages 样式，内置变量，需放在全局范围
+@import '@wiajs/ui/dist/messagebar/index.less';
+@import '@wiajs/ui/dist/messages/index.less';
+
+#wiapage-id {
+  --f7-messagebar-sheet-bg-color: #fff; //rgba(0, 0, 0, 0.1); // #d1d5da;
+
+  .navbar {
+    i.iconfont {
+      font-size: 20px;
+    }
+  }
+  .messagebar {
+    .toolbar-inner {
+      i.iconfont {
+        font-size: 30px;
+      }
+    }
+  }
+
+  .emojiBox {
+    box-sizing: border-box;
+    // background: #d1d5da;
+    // height: 150px;
+    width: 100vw;
+    margin: 0;
+    padding: 12px 12px 0px 12px;
+    overflow: auto;
+    // text-align: left;
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+
+    li {
+      // display: inline-block;
+      width: 48px;
+      height: 48px;
+      line-height: 28px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      img {
+        width: 32px;
+        height: 32px;
+      }
+      a {
+        width: 32px;
+        height: 32px;
+        display: block; // inline-block;
+      }
+    }
+  }
+}

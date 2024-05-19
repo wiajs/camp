@@ -1,0 +1,31 @@
+<div class="page">
+  <!-- Top Navbar -->
+  <div class="toolbar tabbar toolbar-top top-bar">
+    <div class="toolbar-inner">
+      <a href="" class="tab-link" fastlink back><i class="icon iconfont">&#xe660;</i></a>
+      <div>验证码输入</div>
+      <a name="btnHelp" href="" class="tab-link">帮助</a>
+    </div>
+  </div>
+  <div class="page-content">
+    <!-- <div class="header">
+      <div>
+        <a href="" fastlink back>
+          <i class="icon iconfont">&#xe660;</i>
+        </a>
+      </div>
+      <div>帮助</div>
+    </div> -->
+    <div class="block-title">输入验证码</div>
+    <div class="block">
+      <div name="txHeader" class="block-header">验证码已发送至</div>
+      <div class="block-content">
+        <input name="txCode" class="code" type="number" pattern="[0-9]" maxlength="4" />
+      </div>
+      <div name="txTiming" class="block-footer">60 秒后重新获取验证码</div>
+      <button name="btnGetCode" class="button button-large button-raised button-fill" style="display: none">
+        重新获取短信验证码
+      </button>
+    </div>
+  </div>
+</div>

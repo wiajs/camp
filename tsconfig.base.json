@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "lib": ["WebWorker", "DOM", "DOM.Iterable", "ESNext"],
+    "types": ["node", "jquery", "jest", "cypress"],
+    "target": "es2020", // es2020 ESNext
+    "module": "es2020", // es2020 ESNext
+    // Bundler 要求 module 为 es6 以上，node16 在type 为module时，引用要求文件后缀
+    "moduleResolution": "Bundler", // node16  Bundler node
+    "allowJs": true, // 检查、拷贝js
+    "jsx": "react-jsx", // react 17+，_jsx()
+    "strict": true,
+    "forceConsistentCasingInFileNames": true, // 文件名是否为大小写敏感，默认为true
+    "esModuleInterop": true, // 打开，将自动打开allowSyntheticDefaultImports
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noEmit": true, // 不输出，仅类型检查，因为开启了 allowJs，否则提示同名文件无法输出错误
+    "resolveJsonModule": true,
+    "skipLibCheck": true, // 跳过.d.ts类型声明文件的类型检查。这样可以加快编译速度。
+    "skipDefaultLibCheck": true, // 跳过 TypeScript 内置类型声明文件的类型检查
+    "allowArbitraryExtensions": true, // 允许import 非js、ts、jsx、tsx文件
+    "isolatedModules": true, // 某些代码无法通过单文件转译过程正确解释时向您发出警告。
+    "strictNullChecks": false, // null undefined 可赋值给其他类型
+    "noImplicitAny": true, // 不允许隐式的any类型，避免bug，否则自带 any
+    // "noUnusedLocals": true, // 未使用局部变量报错
+    // "noUnusedParameters": true, // 未使用函数参数报错
+    // "verbatimModuleSyntax": true, // 非type 导入导出全保留，type 导入导出完全删除
+    "preserveConstEnums": true, // 保留 const 和 enum 声明，不转为常量
+    "noFallthroughCasesInSwitch": true, // 防止switch语句贯穿(避免遗漏break)
+    "useUnknownInCatchVariables": false, // 保留 err any 类型
+    "sourceMap": false, // 调式映射文件
+    "removeComments": false // 删除注释
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    },
+    "transpileOnly": true
+  }
+}

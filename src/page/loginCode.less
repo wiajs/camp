@@ -1,0 +1,84 @@
+#wiapage-id {
+  background-color: #fff;
+  color: #4b4b4b;
+
+  @media (min-width: 360px) {
+    .page-content {
+      width: 360px;
+      margin: 0 auto;
+    }
+  }
+  /*在谷歌下移除input[number]的上下箭头*/
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0;
+  }
+
+  /*在firefox下移除input[number]的上下箭头*/
+  .createFollowCheck input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  .header {
+    height: 45px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    // background-color: #fffbff;
+    margin: 0px 20px 0px;
+    a {
+      color: #4b4b4b;
+    }
+    div:last-child {
+      text-align: right;
+    }
+  }
+
+  .iconcore {
+    font-family: 'framework7-core-icons';
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  .block {
+    margin: 0 30px 0;
+    padding: 0;
+  }
+
+  .block-title {
+    font-family: SimSun, '宋体';
+    font-size: 27px;
+    margin: 50px 30px 10px;
+    color: #333;
+    line-height: normal;
+    // font-weight: bold;
+  }
+
+  .block-content {
+    display: flex;
+    // margin: 20px 0 25px;
+    // justify-content: center;
+    input {
+      width: 100%;
+      height: 40px;
+      margin: 10px 0;
+      padding-bottom: 2px;
+      text-align: center;
+      text-indent: 20px;
+      letter-spacing: 30px;
+      border: 0px solid #666;
+      border-bottom-width: 1px;
+      font-family: Verdana, SimSun, SimSun, '宋体';
+      font-size: 26px;
+      color: #333;
+    }
+  }
+  .block-header {
+    color: #333;
+  }
+  .block-footer {
+    color: #333;
+  }
+}

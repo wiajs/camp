@@ -1,0 +1,101 @@
+#wiapage-id {
+  // background-color: #fff;
+  color: #4b4b4b;
+
+  .list {
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    .item-media {
+      padding-bottom: 5px;
+      i {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .app-list {
+    .list-label {
+      background: var(--f7-list-bg-color);
+      min-height: 40px;
+      padding-left: calc(
+        var(--f7-list-item-padding-horizontal) + var(--f7-safe-area-left)
+      );
+      display: flex;
+      align-items: center;
+    }
+
+    ul {
+      &::before {
+        left: calc(
+          var(--f7-list-item-padding-horizontal) + var(--f7-safe-area-left)
+        );
+      }
+    }
+
+    .item-media {
+      img {
+        width: 52px; // 图标宽度
+      }
+    }
+
+    .item-inner {
+      &::before {
+        content: '' !important; // 去掉箭头
+      }
+      padding-right: 10px !important;
+
+      .item-title {
+        font-size: 16px;
+      }
+      .item-after {
+        font-size: 14px;
+        display: block;
+        .item-footer {
+          text-align: right;
+        }
+      }
+      .item-footer {
+        font-size: 13px;
+      }
+    }
+  }
+
+  .iconcores {
+    font-family: 'framework7-core-icons';
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  .block-title {
+    font-family: SimSun, '宋体';
+    font-size: 27px;
+    margin: 50px 30px 10px;
+    color: #333;
+    line-height: normal;
+    // font-weight: bold;
+  }
+
+  .block-content {
+    display: flex;
+    margin: 20px 0 25px;
+    input {
+      width: 50px;
+      height: 40px;
+      margin: 10px;
+      padding-bottom: 2px;
+      text-align: center;
+      border: 0px solid #666;
+      border-bottom-width: 1px;
+      font-family: Verdana, SimSun, SimSun, '宋体';
+      font-size: 26px;
+      color: #333;
+    }
+  }
+  .block-header {
+    color: #333;
+  }
+  .block-footer {
+    color: #333;
+  }
+}

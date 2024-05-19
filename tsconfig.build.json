@@ -1,0 +1,30 @@
+// 仅对ts、tsx编译检查，或者输出类型声明，排除 js、test.tsx、spec.ts、stories.tsx 等测试文件
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": [
+    "src/**/*.test.tsx",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.stories.tsx",
+    "node_modules",
+    "../../node_modules",
+    "test",
+    "dist",
+    "types"
+  ],
+  "compilerOptions": {
+    "outDir": "build",
+    "module": "ESNext", // es6 commonjs NodeNext
+    "moduleResolution": "Bundler", // node node16 bundler
+    "noUnusedLocals": false, // 未使用局部变量报错
+    "allowJs": false, // 是否拷贝js到out目录
+    "noEmit": true, // 不输出，仅类型检查
+    // "emitDeclarationOnly": true, // 编译后只生成.d.ts文件，不生成.js文件。
+    "declaration": true, // 编译时是否为每个脚本生成类型声明文件.d.ts
+    "declarationDir": "types", // 生成类型文件路径
+    "declarationMap": true, // 生成对应的 Source Map 文件
+    "sourceMap": true, // 调式映射文件
+    "removeComments": false // 删除注释
+  }
+}

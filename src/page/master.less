@@ -1,0 +1,44 @@
+#wiapage-id {
+  // 引入leftbar样式，
+  @import '../part/leftbar.less';
+
+  width: 250px;
+  background-color: #343a40;
+  color: rgba(255, 255, 255, 0.8);
+
+  .navbar {
+    --f7-navbar-bg-color: #343a40;
+    // --f7-navbar-border-color: #4b545c;
+    --f7-navbar-border-color: rgb(75, 84, 92);
+    --f7-navbar-link-color: rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.8);
+
+    .iconfont {
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    // 好像没起作用
+    .navbar-inner {
+      padding: 0 16px;
+    }
+
+    .left,
+    .right {
+      margin: 0px;
+    }
+  }
+
+  // left-navbar
+  // .toolbar-left {
+  //   @import './leftbar.less';
+  //   // height: 100%;
+
+  //   // 左侧工具条，按列排列
+  //   & > .toolbar-inner {
+  //     flex-flow: column;
+  //     justify-content: flex-start;
+  //     align-items: stretch;
+  //   }
+  // }
+}

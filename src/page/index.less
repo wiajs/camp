@@ -1,0 +1,174 @@
+#wiapage-id {
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+  }
+
+  .menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 100px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    z-index: 1000;
+    /* 确保菜单在其他元素上方显示 */
+  }
+
+  .menu a {
+    display: block;
+    padding: 8px 16px;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+
+  .menu a:hover {
+    background-color: #f0f0f0;
+  }
+
+  header {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 38px;
+    background-color: #0a0a23;
+    color: #fff;
+    z-index: 1000;
+    /* 设置 z-index 避免被其他元素覆盖 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    /* 将文本居中对齐 */
+    display: flex;
+    justify-content: center;
+    /* 让子元素在主轴上居中显示 */
+    align-items: center;
+    /* 让子元素在交叉轴上居中显示 */
+    position: relative;
+
+    h1 {
+      position: absolute;
+      /* 使用绝对定位 */
+      left: 50%;
+      /* 左侧距离为父容器宽度的一半 */
+      transform: translateX(-50%);
+      /* 将元素水平居中 */
+    }
+
+    .headerbtn {
+      position: absolute;
+      right: 30px;
+      cursor: pointer;
+      width: 60px;
+      height: 30px;
+      border: 1px solid #fff;
+      font-size: 18px;
+      color: #fff;
+    }
+
+    .headerbtn:hover {
+      background-color: #fff !important;
+      color: #000;
+    }
+
+    .menu_list {
+      position: absolute;
+      right: 17px;
+      width: 270px;
+      background-color: #0a0a23;
+      bottom: -135px;
+
+      li {
+        width: 100%;
+        padding: 10px;
+        text-align: left;
+        font-size: 18px;
+        list-style: none !important;
+      }
+
+      li:hover {
+        color: #000;
+        background-color: #dfdfe2;
+        cursor: pointer;
+      }
+    }
+  }
+
+  h2 {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .page {
+    overflow-y: auto;
+  }
+
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    width: 50%;
+    /* 设置表单宽度为页面宽度的一半 */
+    margin: 0 auto;
+    /* 设置表单居中 */
+  }
+
+  form div {
+    margin-bottom: 20px;
+  }
+
+  label {
+    font-weight: bold;
+  }
+
+  select,
+  input[type='text'] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .btn:hover {
+    background-color: #0056b3;
+  }
+
+  /* 新增样式 */
+  .checkbox-list {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .checkbox-list li {
+    margin-bottom: 5px;
+  }
+
+  .checkbox-list input[type='checkbox'] {
+    margin-right: 5px;
+  }
+}

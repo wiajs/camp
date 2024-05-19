@@ -1,0 +1,35 @@
+// 菜单列表
+.accordion-list {
+  --f7-list-bg-color: #343a40;
+  --f7-list-chevron-icon-color: rgba(255, 255, 255, 0.8);
+  --f7-list-item-border-color: #343a40;
+  --f7-list-link-hover-bg-color: rgba(255, 255, 255, 0.1);
+
+  --f7-list-margin-vertical: 5px;
+
+  // 菜单链接，聚集或选择，改变颜色
+  .item-content.item-link {
+    border-radius: 5px;
+    margin: 1px 4px;
+    &:focus,
+    &.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+  }
+
+  // 子菜单列表
+  .list {
+    .item-inner {
+      padding-left: 40px;
+      &::before {
+        display: none;
+      }
+    }
+  }
+}
+img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}

@@ -1,0 +1,69 @@
+[
+  {
+    "$schema": "https://json.schemastore.org/swcrc",
+    "test": "\\.(js|jsx|mjs|cjs)$",
+    "exclude": [".*[.]d[.]ts$"],
+    "jsc": {
+      "parser": {
+        "syntax": "ecmascript", // "typescript"
+        "jsx": true,
+        "dynamicImport": false,
+        "privateMethod": true,
+        "functionBind": false,
+        "exportDefaultFrom": false,
+        "exportNamespaceFrom": false,
+        "decorators": false,
+        "decoratorsBeforeExport": false,
+        "topLevelAwait": false,
+        "importMeta": false
+      },
+      "transform": {
+        "legacyDecorator": true,
+        "decoratorMetadata": true,
+        "decoratorVersion": "2022-03" // "2021-12" (default)
+        "react": {
+          // "runtime": "automatic", // or classic
+          "throwIfNamespace": true,
+          "useBuiltins": false,
+          "development": false
+        },
+      },
+      "loose": true,
+      "target": "es2022", // 目标代码 es5,es6,es2020,es2021,es2022
+      "externalHelpers": false,
+      "keepClassNames": true // 保留原始类名
+    },
+    "module": {
+  // 问题：es6 调式模式没问题，生产模式报错，提示函数找不到，可能是一些函数被摇树掉了，cjs 是作为整体输出，不摇树
+  // babel 编译 输出 es6 没有问题，原因不明
+      "type": "es6" // 输出模块类型  "es6",  "commonjs"
+    },
+    "minify": false, // 压缩代码，发布是需要
+    "sourceMaps": false
+  },
+  {
+    "$schema": "https://json.schemastore.org/swcrc",
+    "test": "\\.(ts|tsx)$",
+    "exclude": [".*\\.map$"],
+    "jsc": {
+      "parser": {
+        "syntax": "typescript",
+        "tsx": true,
+        "decorators": true,
+        "dynamicImport": false
+      },
+      "transform": {
+        "decoratorVersion": "2022-03"
+      },
+      "loose": true,
+      "target": "es2022", // es5,es6,es2020,es2021,es2022
+      "externalHelpers": false,
+      "keepClassNames": true // 保留原始类名
+    },
+    "module": {
+      "type": "commonjs"
+    },
+    "minify": false, // 压缩代码，发布是需要
+    "sourceMaps": false
+  }
+]

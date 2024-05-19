@@ -1,0 +1,16 @@
+// vs code 语法检查
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["src/**/*", "jest/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    // https://github.com/tsconfig/bases/blob/main/bases/node20.json
+    "module": "ESNext", // commonjs Node16，输出模块类型，后端为 node16，前端为 es6 以上
+    // Bundler 要求 module 为 es6 以上，node16 在type 为module时，引用要求文件后缀
+    "moduleResolution": "Bundler", // node16  Bundler
+    // import允许带.ts, .mts和 .tsx，js无法识别，仅用于第三方转译、打包或类型输出
+    "allowImportingTsExtensions": true,
+    // vscode 中 "javascript.validate.enable": false, 则无法开启tscheck
+    "checkJs": true // 默认是否开启js类型检查，文件中通过@ts-check @ts-nocheck 开启、关闭！
+  }
+}
