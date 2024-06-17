@@ -3,6 +3,7 @@
  */
 import {Event} from '@wiajs/core'
 import Api from '../util/api'
+import _ from 'lodash'
 
 const _html = require('./navbar.html').default
 
@@ -20,6 +21,7 @@ export default class Navbar extends Event {
     this.page = page // 页面实例
     this.opt = {...def, ...opt}
     this.render(opt.data)
+    this.show(opt.data)
   }
 
   render(data) {
@@ -32,11 +34,16 @@ export default class Navbar extends Event {
     }
 
     loadUserImg().then(res => {
-      debugger
-      if (res) this.opt.el.class('userimg')[0].src = res
+      console.log(res)
+      this.opt.el.class('userimg')[0].src = res
     })
   }
 
+  show(data) {
+    loadUserImg().then(res => {
+      this.opt.el.class('userimg')[0].src = res
+    })
+  }
   /**
    * 绑定点击事件
    */
@@ -52,9 +59,12 @@ export default class Navbar extends Event {
     })
 
     n.name('btnLogin').click(ev => {
-      $.go('login', {relogin: true})
+      localStorage.removeItem('coures')
+      localStorage.removeItem('nuoya/camp/token')
+      localStorage.removeItem('nuoya/camp/chall')
+      localStorage.removeItem('nuoya/camp/mobile')
+      $.go('login')
     })
-
     n.name('fullScreen').click(ev => {
       let falg = true
       if (!document.fullscreenElement && falg === true) {
@@ -81,15 +91,8 @@ export default class Navbar extends Event {
 }
 
 async function loadUserImg() {
-  let R
-  try {
-    const u = $.app.user
-    if (!u.studentid) $.go('mine/user')
-    else {
-      const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-      R = stu.avatar ?? 'img/avator.png'
-    }
-  } catch (e) {}
-
-  return R
+  const u = $.app.user
+  if (!u.studentid) $.go('mine/user')
+  const stu = await new Api('camp/student').get({q: {id: u.studentid}})
+  return stu.avatar
 }

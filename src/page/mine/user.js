@@ -3,6 +3,7 @@
 import {Page, jsx} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
 import Uploader from '@wiajs/ui/uploader'
+import * as echarts from 'echarts'
 // import Uploader from '../../ui/uploader'; // eslint-disable-line
 // import {signal, computed, effect, batch} from '@preact/signals-core';
 // import {signal, effect, batch} from '@wiajs/lib/signal'
@@ -34,7 +35,7 @@ const _url = 'https://test.lianlian.pub/img/upload'
 
 /** @type {*} */
 let _fm = null // main form
-
+let stu
 const _data = {
   name: '喻华锋',
   nick: 'way',
@@ -105,6 +106,7 @@ export default class User extends Page {
     _fm = v.name('fmData')
     log({v, param}, 'show')
     show()
+    initEcharts()
   }
 
   /**
@@ -128,6 +130,7 @@ export default class User extends Page {
     super.back(v, param)
     log({v, param}, 'hide')
     back(param)
+    initEcharts()
   }
 
   /** @param {*} v */
@@ -141,7 +144,7 @@ export default class User extends Page {
  * @param {Page} pg 页面实例
  */
 function init(pg) {
-  const nav = new Navbar(pg, {
+  const nav = new Navbar(this, {
     el: _.class('navbar'),
     // active: 'btnHome',
   })
@@ -247,6 +250,9 @@ async function save() {
       r = await _api.up({id: _r.id}, d)
       if (r) {
         _r = r
+        loadUserImg().then(res => {
+          _.class('userimg')[0].src = res
+        })
         await promisify($.app.dialog.alert, 0)('修改成功!', '温馨提示!')
       }
     } else {
@@ -314,26 +320,132 @@ async function loadMajor(collid, val = 0) {
   }
 }
 
-function autoFill(debounceTimeout) {
-  let noInput = document.querySelector('input[name="no"]')
-  let gradeInput = document.querySelector('input[name="grade"]')
-  let debounceTimer
+async function loadUserImg() {
+  const u = $.app.user
+  if (!u.studentid) return
+  const stu = await new Api('camp/student').get({q: {id: u.studentid}})
+  return stu.avatar
+}
 
-  function fillGrade() {
-    clearTimeout(debounceTimer) // 清除之前的定时器
+async function initEcharts() {
+  const u = $.app.user
+  if (!u.studentid) return
 
-    debounceTimer = setTimeout(function () {
-      var studentNo = noInput.value
-      var extractedDigits = studentNo.replace(/\D/g, '').slice(0, 4) // 提取前四位数字
-      gradeInput.value = extractedDigits // 填充到年级输入框中
-    }, debounceTimeout)
-  }
+  /**
+   * @type {Array<object>}
+   */
+  let data = []
+  let r = await _api.get({q: {id: u.studentid}})
+  let rs = JSON.parse(localStorage.getItem('coures'))
+  r.course.forEach(async (/** @type {any} */ r) => {
+    // console.log(r.score);
+    // console.log(
+    //   await post('https://test.lianlian.pub/camp/getRank', {
+    //     couresid: rs.couresId,
+    //     challid: rs.challid,
+    //     studentid: u.studentid,
+    //     score: r.score,
+    //   })
+    // )
+    data.push(computedSch(r.count, r.total, r.id))
+  })
+  let myChart = echarts.init(document.querySelector('.schedule'))
 
-  noInput.addEventListener('input', fillGrade)
-
-  return {
-    stop: function () {
-      noInput.removeEventListener('input', fillGrade)
+  let option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow',
+      },
     },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true,
+    },
+    title: [
+      {
+        left: 'center',
+        text: '课程完成进度表',
+      },
+    ],
+    xAxis: [
+      {
+        type: 'category',
+        data: data.map(function (item) {
+          return item.name
+        }),
+        axisTick: {
+          alignWithLabel: true,
+        },
+      },
+    ],
+    yAxis: [
+      {
+        type: 'value',
+      },
+    ],
+    series: [
+      {
+        name: 'Direct',
+        type: 'bar',
+        barWidth: '60%',
+        data: data.map(function (item) {
+          return parseFloat(item.value) // 将百分比字符串转换为数值
+        }),
+        itemStyle: {
+          normal: {
+            label: {
+              show: true, // 开启显示
+              position: 'top', // 标签的位置,outer外面，inner里面，top上面
+              textStyle: {
+                // 数值样式
+                color: '#5470C6',
+                fontSize: 14,
+              },
+              formatter: '{c}%', // 格式化显示的样式
+            },
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              {
+                offset: 0,
+                color: '#347CDD',
+              },
+              {
+                offset: 1,
+                color: '#56fb93',
+              },
+            ]),
+          },
+        },
+      },
+    ],
   }
+
+  myChart.setOption(option)
+}
+
+/**
+ *
+ * @param {*} count
+ * @param {*} total
+ * @param {*} id
+ */
+function computedSch(count, total, id) {
+  let data
+  switch (id) {
+    case 5:
+      data = {name: 'HTML', value: ((count / total) * 100).toFixed(0)}
+      break
+    case 1:
+      data = {name: 'CSS', value: ((count / total) * 100).toFixed(0)}
+      break
+    case 2:
+      data = {name: 'flexbox', value: ((count / total) * 100).toFixed(0)}
+      break
+    case 4:
+      data = {name: 'Javascript', value: ((count / total) * 100).toFixed(0)}
+      break
+  }
+  return data
 }

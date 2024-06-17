@@ -1,80 +1,55 @@
-import {Page} from '@wiajs/core'
-import {log as Log} from '@wiajs/util'
-import Verify from '@wiajs/ui/verify'
-import * as store from '../util/store'
+import {Page} from '@wiajs/core';
+import Verify from '@wiajs/ui/verify';
+import * as store from '../util/store';
 // import {getCode} from '../api/user';
 
-/** @type {*} */
-const {$} = window
-
-/** @typedef {{app?:*, name?: string, title?: string}} OptType */
-
-/** @type {OptType} */
-const def = {
-  app: $.app,
-  name: 'login',
-  title: '登录',
-}
-
-const log = Log({m: def.name}) // 创建模块日志实例
+const _list = {
+  cache: {},
+  data: null,
+};
 
 /** @type {*} */
-let _ = null
-
-/** @type {*} */
-const _from = {}
+let _ = null;
+const _from = {};
+const _name = 'login';
+const _title = '登录';
 
 /** @type {Verify} */
-let _verify
+let _verify;
 
 export default class Login extends Page {
-  /** @type {OptType} opts */
-  constructor(opts = {}) {
-    /** {OptType} */
-    const opt = {...def, ...opts}
-    super(opt.app, opt.name, opt.title)
+  constructor(opt) {
+    opt = opt || {};
+    super(opt.app || $.app, opt.name || _name, opt.title || _title);
+    console.log('login constructor:', {opt, cfg: this.cfg});
+    // $.app.loadModule(Input); // 动态加载Input组件模块，否则只有样式，没有特效
   }
 
-  /** @param {*} param */
   load(param) {
-    super.load(param)
-    log({param}, 'load')
+    super.load(param);
+    console.log('login load:', {param});
   }
 
-  /**
-   * 在已就绪的视图上绑定事件
-   * @param {*} v
-   * @param {*} param
-   */
-  ready(v, param) {
-    super.ready(v, param)
-    _ = v
-    log({v, param, id: this.id}, 'ready')
-    init(this)
-    bind(this)
+  // 在已经加载的视图上操作
+  ready(v, param, bk) {
+    super.ready(v, param, bk);
+    _ = v;
+    console.log('login ready...:', {param, back: bk});
+    init(this);
+    bind(this);
   }
 
-  /**
-   * 显示页面
-   * @param {*} v
-   * @param {*} param
-   */
   show(v, param) {
-    super.show(v, param)
-    const lastData = $.lastPage && $.lastPage.data
-    console.log('login show:', {param, lastData})
-    $.assign(_from, param)
-    show()
+    super.show(v, param);
+    const lastData = $.lastPage && $.lastPage.data;
+    console.log('login show:', {param, lastData});
+    $.assign(_from, param);
+    show(param);
   }
 
-  /**
-   * 返回
-   * @param {*} v
-   * @param {*} param
-   */
   back(v, param) {
-    super.back(v, param)
-    _verify?.reload()
+    super.back(v, param);
+    _verify?.reload();
   }
 }
 
@@ -83,37 +58,36 @@ export default class Login extends Page {
  * @param {Login} pg
  */
 function init(pg) {
-  let R
+  let R;
 
   try {
     /** @type {string|number} */
     // eslint-disable-next-line
-    let width = getComputedStyle($('.verify').upper('ul')[0]).width
-    if (width && width !== '300px') width = Number.parseInt(width.replace('.px', ''))
-    width = width ?? 0 < 300 ? 300 : width
+    let width = getComputedStyle($('.item-inner')[0]).width;
+    if (width && width !== '300px') width = Number.parseInt(width.replace('.px', ''));
 
     _verify = new Verify(pg, {
       el: '.verify',
       url: 'https://test.lianlian.pub/auth',
       width, // iPhone 需缩小避免页面左右滑动
       // url: 'img/verify',
-    })
+    });
 
     _verify.onSuccess = () => {
-      console.log('success')
-      onSucc(_verify.mobile)
-    }
+      console.log('success');
+      onSucc(_verify.mobile);
+    };
     _verify.onFail = () => {
-      console.log('fail')
-    }
+      console.log('fail');
+    };
     _verify.onRefresh = () => {
-      console.log('refresh')
-    }
+      console.log('refresh');
+    };
   } catch (e) {
-    console.error(`init exp:${e.message}`)
+    console.error(`init exp:${e.message}`);
   }
 
-  return R
+  return R;
 }
 
 /**
@@ -121,25 +95,25 @@ function init(pg) {
  * @param {Login} pg
  */
 function bind(pg) {
-  try {
+	try {
     _.class('checkbox').click(async ev => {
       // console.log(_.ckAgree.val(_));
-      const mobile = _.txMobile.val()
+      const mobile = _.txMobile.val();
       if (/1\d{10}/.test(mobile)) {
-        store.set('mobile', mobile)
-
-        if (_.ckAgree.dom.checked) _.liVerify.hide()
+        store.set('mobile', mobile);
+	
+        if (_.ckAgree.dom.checked) _.liVerify.hide();
         else {
           // 通过手机号码加载验证图片
-          if (!_verify.status) await _verify.loadImg(mobile)
-          _.liVerify.show()
-        }
+          if (!_verify.status) await _verify.loadImg(mobile);
+          _.liVerify.show();
+    }
       } else {
-        alert('请输入正确手机号码')
-        ev.preventDefault()
-        _.ckAgree.dom.checked = false
+      alert('请输入正确手机号码');
+        ev.preventDefault();
+        _.ckAgree.dom.checked = false;
       }
-    })
+    });
 
     // _.btnReset.click(async () => {
     //   if (!_.ckAgreement.dom.checked) {
@@ -168,9 +142,9 @@ function bind(pg) {
     //   }
     // });
   } catch (e) {
-    console.error(`bind exp: ${e.message}`)
+    console.error(`bind exp: ${e.message}`);
   }
-}
+    }
 
 /**
  * 图片拖动验证成功
@@ -178,33 +152,30 @@ function bind(pg) {
  * @returns
  */
 function onSucc(mobile) {
-  let R
+  let R;
 
   try {
-    // $.nextTick(() => $.go('loginCode', {mobile: '18605812888', time: 120}));
-    // window.location.hash.replace('!loginCode');
-    $.go('loginCode', {
-      mobile,
-      hash: _from.hash,
-      from: _from.from,
-      to: _from.to,
-      param: _from.param,
-    })
-  } catch (e) {
-    console.error(`onSucc exp:${e.message}`)
-  }
+      // $.nextTick(() => $.go('loginCode', {mobile: '18605812888', time: 120}));
+      // window.location.hash.replace('!loginCode');
+      $.go('loginCode', {
+        mobile,
+        hash: _from.hash,
+        from: _from.from,
+        to: _from.to,
+        param: _from.param,
+  });
+	} catch(e) {
+    console.error(`onSucc exp:${e.message}`);
+	}
 
-  return R
+  return R;
 }
 
-function show() {
-  let {mobile} = _from
-  if (!mobile) mobile = store.get('mobile')
+function show(param) {
+  let {mobile} = param;
+  if (!mobile) mobile = store.get('mobile');
 
-  const $tx = _.txMobile
-  if (mobile) $tx.val(mobile)
-  $tx.dom.focus()
-
-  // 复位验证图
-  if (_from.relogin && _verify) _verify.reload()
+  const $tx = _.txMobile;
+  if (mobile) $tx.val(mobile);
+  $tx.dom.focus();
 }

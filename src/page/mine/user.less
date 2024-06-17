@@ -15,19 +15,23 @@
       justify-content: center;
       background-color: #44aaff;
       font-size: 20px;
+
       a {
         color: #fff;
       }
     }
   }
+
   .list.inline-labels {
     margin: 10px 0px 0px 0px;
+
     // emile 20/05/16
     .avatar {
       .item-inner {
         padding-top: 0px;
         padding-bottom: 0px;
-        .item-after > div {
+
+        .item-after>div {
           flex: none;
           width: 86px;
           height: 86px;
@@ -40,18 +44,35 @@
       align-self: auto;
       width: 10vw;
       color: #666;
+
       span {
         color: red;
       }
     }
   }
+
+  .page-content {
+    display: flex;
+  }
+
   .card {
+    width: 40%;
+    height: 700px;
+    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
+
     .card-footer {
       justify-content: flex-end;
+
       button {
         width: 100px;
         margin: 0 8px;
       }
     }
+  }
+
+  .schedule {
+    width: 50%;
+    height: 50%;
+    margin-top: 16px;
   }
 }

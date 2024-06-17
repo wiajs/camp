@@ -63,17 +63,14 @@ async function login(sid, mobile, code) {
   try {
     const u = $.app.user
     code = sha1(mobile + code)
-
-    log({sid, mobile, code}, 'login')
-
+    log(`login code:${code}`)
     const r = await post(api.login, {sid, mobile, code})
     let msg
     if (r) {
       log({token: cfg.token, r}, 'login')
       if (r.code === 200) {
-        if (u) await logout() // 注销旧的token
-        // alert('登录成功！')
-        store.set(cfg.token, r.data.token)
+        await logout() // 注销旧的token
+        if (!u) store.set(cfg.token, r.data.token)
         R = r.data.token
       } else if (r.code === 4039) msg = '错误次数太多，请重新验证！'
       else msg = '验证码不正确，请重新输入！'
@@ -170,7 +167,7 @@ async function logout() {
       log({token: cfg.token, r}, 'logout')
       if (r.code === 200) {
         store.set(cfg.token, '')
-        msg = '注销成功！'
+        msg = '注销登录成功！'
         R = true
       }
     } else {
@@ -178,7 +175,7 @@ async function logout() {
       msg = '服务器响应超时，请稍后再试！'
     }
 
-    // if (msg) alert(msg)
+    if (msg) alert(msg)
   } catch (e) {
     log.err(e, 'login')
   }

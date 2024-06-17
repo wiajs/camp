@@ -1,7 +1,7 @@
 {
   "name": "camp",
   "author": "nuoya",
-  "version": "0.0.9",
+  "version": "0.0.1",
   "description": "wia code camp",
   "scripts": {
     "build-rs": "cross-env NODE_ENV=production rspack build",

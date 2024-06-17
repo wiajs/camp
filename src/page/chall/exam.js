@@ -1,7 +1,7 @@
 import {Page, jsx} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
 import {assert} from 'chai' // Using Assert style
-import {delay, post} from '../../util/tool'
+import {delay, post, promisify} from '../../util/tool'
 import * as store from '../../util/store'
 import Navbar from '../../part/navbar'
 import Api from '../../util/api'
@@ -68,7 +68,7 @@ export default class Exam extends Page {
     super.ready(v, param)
     log({v, param, id: this.id}, 'ready')
     _ = v
-    init(this)
+    init(param)
     bind(param)
   }
 
@@ -77,12 +77,19 @@ export default class Exam extends Page {
    * @param {*} v
    * @param {*} param
    */
-  show(v, param) {
+  async show(v, param) {
     super.show(v, param)
     log({v, param}, 'show')
     _ = v
     $.assign(_from, param)
-    show(param)
+    if (JSON.parse(localStorage.getItem('coures'))) {
+      show(param)
+    } else {
+      console.log('1111')
+      await promisify($.app.dialog.alert, 0)('请选择课程!', '温馨提示!')
+      $.go('course/index')
+    }
+
     _store = getLocal()
     _.class('course').text(_store.couresTitle)
     setCourseProgress()
@@ -119,11 +126,10 @@ export default class Exam extends Page {
 }
 
 /**
- * 初始化
- * @param {Page} pg
+ * @param {any} param
  */
-function init(pg) {
-  const nav = new Navbar(pg, {
+function init(param) {
+  const nav = new Navbar(this, {
     el: _.class('navbar'),
     // active: 'btnHome',
   })
@@ -138,8 +144,7 @@ function init(pg) {
  * @param {*} param
  */
 function bind(param) {
-  // @ts-ignore
-  _.btnRun.click(ev => {
+  _.btnRun.click((/** @type {any} */ ev) => {
     loadFrame()
     const cnt = run(_r)
     submit(_r, cnt)
@@ -178,10 +183,11 @@ function back(param) {
 
 /**
  * 加载挑战
- * @param {number=} courseid|challid - 课程id 或 挑战id
+ * @param {number} courseid|challid - 课程id 或 挑战id
  * @param {number} [step = 0] 课程id 必须带 step
  */
 async function loadChall(courseid, step = 0) {
+  $.app.dialog.preloader()
   try {
     let r
     if (!courseid) {
@@ -228,6 +234,7 @@ async function loadChall(courseid, step = 0) {
   } catch (e) {
     log.err(e, 'loadChall')
   }
+  $.app.dialog.close()
 }
 
 /**
@@ -282,7 +289,7 @@ async function showCode(code, lang) {
       wordWrap: 'on',
     })
 
-    _editor.onDidChangeModelContent(e => {
+    _editor.onDidChangeModelContent((/** @type {any} */ e) => {
       loadFrame()
     })
   } catch (e) {
@@ -335,7 +342,7 @@ function run(rs) {
     let code = _editor.getValue()
     let cnt = 0
     // 测试输入代码
-    rs.tests.forEach(test => {
+    rs.tests.forEach((/** @type {{ testString: string; text: any; }} */ test) => {
       let passed = true
       let flag = true
       try {
@@ -349,7 +356,8 @@ function run(rs) {
           }
         } else {
           code = code.replace(/export\s*/g, '')
-          eval(code + '\n' + test.testString)
+          console.log(test.testString)
+          eval(code + rs.challengeFiles[0].tail + '\n' + test.testString)
         }
         // 样式函数
         // assertExcption
@@ -388,6 +396,7 @@ function run(rs) {
  * @param {number} count - 正确数
  */
 async function submit(r, count = 0) {
+  console.log(count);
   try {
     if (!r || !r.id || !$.app.user) return
 
@@ -400,7 +409,7 @@ async function submit(r, count = 0) {
       code: _editor.getValue(),
       start: $.date('yyyy-MM-dd hh:mm:ss', startTime),
       stop: $.date('yyyy-MM-dd hh:mm:ss', stopTime),
-      count,
+      count ,
     }
     const rs = await post(`${api.camp.addExam}`, d)
     log({d, rs}, 'submit')
@@ -439,6 +448,7 @@ async function setCourseProgress() {
   let {couresId} = getLocal()
   let progress = '0'
   const stu = await new Api('camp/student').get({q: {id: u.studentid}})
+  console.log(stu);
   if (stu?.course?.length) {
     for (const c of stu.course) {
       c.count && c.id == parseInt(couresId) ? (progress = computedSch(c.count, c.total)) : progress
@@ -454,6 +464,7 @@ async function setCourseProgress() {
  * @param {*} total
  */
 function computedSch(count, total) {
+  console.log(count)
   return ((count / total) * 100).toFixed(0)
 }
 
