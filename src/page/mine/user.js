@@ -1,12 +1,12 @@
 /** @jsx jsx */
 
 import {Page, jsx} from '@wiajs/core'
-import {log as Log} from '@wiajs/util'
 import Uploader from '@wiajs/ui/uploader'
 // import Uploader from '../../ui/uploader'; // eslint-disable-line
 // import {signal, computed, effect, batch} from '@preact/signals-core';
 // import {signal, effect, batch} from '@wiajs/lib/signal'
 // import {reactive, ref, effect} from '@vue/reactivity'
+import {log as Log} from '@wiajs/util'
 import Navbar from '../../part/navbar'
 import {promisify, post} from '../../util/tool'
 import Api from '../../util/api'
@@ -64,7 +64,7 @@ let _api
 let _r
 
 export default class User extends Page {
-  /** @type {OptType} opts */
+  /** @param {OptType} opts */
   constructor(opts = {}) {
     /** {OptType} */
     const opt = {...def, ...opts}
@@ -165,7 +165,7 @@ function init(pg) {
 
     multiple: false, // 可否同时选择多个文件
     limit: 1, // 选择图片数限制 -1 0 不限
-    left: 250, // 预览偏移
+    left: 250, // 预览偏移，左边有导航栏
 
     // xhr配置
     data: {bucket: 'camp'}, // 腾讯云存储桶

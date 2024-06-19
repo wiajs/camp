@@ -1,6 +1,7 @@
 import {Page, jsx} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
-import {assert} from 'chai' // Using Assert style
+import {assert, AssertionError, ReferenceError} from 'chai' // v4.4.1， 5 只支持 esm
+import * as __helpers from '@freecodecamp/curriculum-helpers'
 import {delay, post} from '../../util/tool'
 import * as store from '../../util/store'
 import Navbar from '../../part/navbar'

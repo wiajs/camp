@@ -32,7 +32,6 @@ export default class Navbar extends Event {
     }
 
     loadUserImg().then(res => {
-      debugger
       if (res) this.opt.el.class('userimg')[0].src = res
     })
   }
