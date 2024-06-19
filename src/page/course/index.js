@@ -59,8 +59,6 @@ export default class Index extends Page {
     super.ready(v, param)
     log({v, param, id: this.id}, 'ready')
     _ = v
-
-    init(this)
     bind()
   }
 
@@ -74,10 +72,11 @@ export default class Index extends Page {
     log({v, param}, 'show')
     _ = v
     $.assign(_from, param)
-
-    const u = $.app.user
-    if (!u.studentid) $.go('mine/user')
-    else getCoures()
+    init()
+    loadUserImg().then(res => {
+      _.class('userimg')[0].src = res
+    })
+    getCoures()
   }
 
   /**
@@ -99,7 +98,6 @@ export default class Index extends Page {
     super.back(v, param)
     log({v, param}, 'hide')
     getCoures()
-    _.course.html('')
     init()
   }
 
@@ -109,29 +107,28 @@ export default class Index extends Page {
   }
 }
 
-/**
- * 初始化
- * @param {Page} pg
- */
-async function init(pg) {
+async function init() {
   try {
-    const nav = new Navbar(pg, {
+    _.course.html('')
+    const nav = new Navbar(this, {
       el: _.class('navbar'),
       // active: 'btnHome',
     })
 
     const u = $.app.user
-    const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-    if (stu?.course?.length) {
-      // _.class('coures').html().remove();
-      _.class('coures').prepend('<span class="course_title">课程</span>')
-      // eslint-disable-next-line no-restricted-syntax
-      for (const c of stu.course) {
-        const {id, count} = c
+    if (!u.studentid) $.go('mine/user')
+    else {
+      const stu = await new Api('camp/student').get({q: {id: u.studentid}})
+      if (stu?.course?.length) {
+        // _.class('coures').html().remove();
+        _.class('coures').prepend('<span class="course_title">课程</span>')
+        // eslint-disable-next-line no-restricted-syntax
+        for (const c of stu.course) {
+          const {id, count} = c
 
-        const r = await _api.get({q: {id}})
-        console.log(r)
-        if (r) loadCourse(r, count)
+          const r = await _api.get({q: {id}})
+          if (r) loadCourse(r, count)
+        }
       }
     }
   } catch (e) {
@@ -143,7 +140,7 @@ function bind() {
   try {
     // @ts-ignore
     _.course.click(ev => {
-      const input = $(ev.target).closest('.accordion-list').siblings('.title').text()
+      let input = $(ev.target).closest('.accordion-list').siblings('.title').text()
       let type = ''
       let couresId
       switch (input) {
@@ -167,8 +164,11 @@ function bind() {
           type = 'html'
           break
       }
-      localStorage.setItem('coures', JSON.stringify({type, couresTitle: input, couresId}))
       const id = $(ev.target).upper('.lies').data('id')
+      localStorage.setItem(
+        'coures',
+        JSON.stringify({challid: id, type, couresTitle: input, couresId})
+      )
       if (id) $.go('chall/exam', {challid: id})
     })
   } catch (e) {
@@ -242,5 +242,11 @@ async function getCoures() {
     q: {studentid: $.app.user.studentid, passed: true},
     field: 'challid',
   })
-  console.log(userCoures)
+}
+
+async function loadUserImg() {
+  const u = $.app.user
+  if (!u.studentid) return
+  const stu = await new Api('camp/student').get({q: {id: u.studentid}})
+  return stu.avatar
 }

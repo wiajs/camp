@@ -20,6 +20,7 @@ export default class Navbar extends Event {
     this.page = page // 页面实例
     this.opt = {...def, ...opt}
     this.render(opt.data)
+    this.show(opt.data)
   }
 
   render(data) {
@@ -32,10 +33,16 @@ export default class Navbar extends Event {
     }
 
     loadUserImg().then(res => {
+      console.log(res)
       if (res) this.opt.el.class('userimg')[0].src = res
     })
   }
 
+  show(data) {
+    loadUserImg().then(res => {
+      this.opt.el.class('userimg')[0].src = res
+    })
+  }
   /**
    * 绑定点击事件
    */
@@ -51,6 +58,11 @@ export default class Navbar extends Event {
     })
 
     n.name('btnLogin').click(ev => {
+      // ???
+      // localStorage.removeItem('coures')
+      // localStorage.removeItem('nuoya/camp/token')
+      // localStorage.removeItem('nuoya/camp/chall')
+      // localStorage.removeItem('nuoya/camp/mobile')
       $.go('login', {relogin: true})
     })
 
@@ -86,7 +98,7 @@ async function loadUserImg() {
     if (!u.studentid) $.go('mine/user')
     else {
       const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-      R = stu.avatar ?? 'img/avator.png'
+      R = stu.avatar ?? 'https://camp.wia.pub/img/avator.png'
     }
   } catch (e) {}
 

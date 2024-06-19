@@ -232,7 +232,7 @@ async function buildjs(cb) {
 
   const cfg = _.merge(rsCfg, {
     // 替换 webpack.config.js 里的设置
-    mode: isProd ? 'production' : 'development', // 'development', // env, 'production'
+    mode: 'development', // isProd ? 'production' : 'development', // 'development', // env, 'production'
     watch: true, // isPub || isProd,
     devtool: isProd ? false : isPub ? 'eval' : 'source-map', // 单步跟踪调试
     entry: ps,

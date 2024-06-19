@@ -1,22 +1,8 @@
 import {Page} from '@wiajs/core'
-import {log as Log} from '@wiajs/util'
 import {login, getCode, getUser} from '../api/user'
 
-/** @type {*} */
-const {$} = window
-
-/** @typedef {{app?:*, name?: string, title?: string}} OptType */
-
-/** @type {OptType} */
-const def = {
-  app: $.app,
-  name: 'loginCode',
-  title: '登录验证',
-}
-
-const log = Log({m: def.name}) // 创建模块日志实例
-
-/** @type {*} */
+const _name = 'loginCode'
+const _title = '登录验证'
 const _from = {}
 let _txs
 let _timer = null
@@ -25,36 +11,25 @@ let _timer = null
 let _
 
 export default class LoginCode extends Page {
-  /** @type {OptType} opts */
-  constructor(opts = {}) {
-    /** {OptType} */
-    const opt = {...def, ...opts}
-    super(opt.app, opt.name, opt.title)
+  constructor(opt) {
+    opt = opt || {}
+    super(opt.app || $.app, opt.name || _name, opt.title || _title)
+    console.log(`${_name} constructor:`, {opt})
   }
 
-  /** @param {*} param */
   load(param) {
     super.load(param)
-    log({param}, 'load')
+    console.log(`${_name} load:`, {param})
   }
 
-  /**
-   * 在已就绪的视图上绑定事件
-   * @param {*} v
-   * @param {*} param
-   */
-  ready(v, param) {
-    super.ready(v, param)
+  // 在已就绪的视图上绑定事件
+  ready(v, param, bk) {
+    super.ready(v, param, bk)
     _ = v
-    log({v, param, id: this.id}, 'ready')
+    console.log(`${_name} ready:`, {v, param})
     bind()
   }
 
-  /**
-   * 显示页面
-   * @param {*} v
-   * @param {*} param
-   */
   show(v, param) {
     super.show(v, param)
     $.assign(_from, param)
@@ -62,6 +37,7 @@ export default class LoginCode extends Page {
   }
 
   hide(v) {
+    console.log(`${_name} hide:`, {v})
     stopTime()
   }
 }
@@ -103,7 +79,7 @@ function bind() {
 /**
  * 页面恢复到初始化状态
  */
-function show() {
+function show(param) {
   _.btnGetCode.hide()
 
   const {mobile} = _from
@@ -200,7 +176,6 @@ function stopTime() {
 
 /**
  * 调用login接口
- * @param {string} code
  */
 async function dologin(code) {
   try {
@@ -217,7 +192,7 @@ async function dologin(code) {
       // 打开指定 hash
       // 先加载master页面，由master加载detail页面 $.go('pay/index');
       else if (_from.hash) $.go('master', {path: _from.hash, param: _from.param})
-      else if (!_from.hash) $.go('master', {path: 'course/index'})
+      else if (!_from.hash) $.go('master', {path: 'class/index'})
     } else clear()
   } catch (e) {
     alert('验证码不正确，登录失败！')
