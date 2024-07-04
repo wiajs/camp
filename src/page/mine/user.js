@@ -3,9 +3,14 @@
 import {Page, jsx} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
 import Uploader from '@wiajs/ui/uploader'
-import * as echarts from 'echarts'
+import * as echarts from 'echarts/core'
+import {BarChart} from 'echarts/charts'
+import {TitleComponent, TooltipComponent, GridComponent} from 'echarts/components'
+import {CanvasRenderer} from 'echarts/renderers'
+// 注册必需的组件
+echarts.use([TitleComponent, TooltipComponent, GridComponent, BarChart, CanvasRenderer])
 // import Uploader from '../../ui/uploader'; // eslint-disable-line
-// import {signal, computed, effect, batch} from '@preact/signals-core';
+// import {signal,lib/component/title" computed, effect, batch} from '@preact/signals-core';
 // import {signal, effect, batch} from '@wiajs/lib/signal'
 // import {reactive, ref, effect} from '@vue/reactivity'
 import Navbar from '../../part/navbar'

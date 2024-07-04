@@ -1,7 +1,9 @@
-import {Page, jsx} from '@wiajs/core'
+import {Page} from '@wiajs/core'
+import {assert, AssertionError} from 'chai' // v4.4.1， 5 只支持 esm ReferenceError
+// @ts-ignore
+import * as __helpers from '@freecodecamp/curriculum-helpers'
 import {log as Log} from '@wiajs/util'
-import {assert} from 'chai' // Using Assert style
-import {delay, post, promisify} from '../../util/tool'
+import {delay, post} from '../../util/tool'
 import * as store from '../../util/store'
 import Navbar from '../../part/navbar'
 import Api from '../../util/api'
@@ -68,7 +70,7 @@ export default class Exam extends Page {
     super.ready(v, param)
     log({v, param, id: this.id}, 'ready')
     _ = v
-    init(param)
+    init(this)
     bind(param)
   }
 
@@ -77,19 +79,12 @@ export default class Exam extends Page {
    * @param {*} v
    * @param {*} param
    */
-  async show(v, param) {
+  show(v, param) {
     super.show(v, param)
     log({v, param}, 'show')
     _ = v
     $.assign(_from, param)
-    if (JSON.parse(localStorage.getItem('coures'))) {
-      show(param)
-    } else {
-      console.log('1111')
-      await promisify($.app.dialog.alert, 0)('请选择课程!', '温馨提示!')
-      $.go('course/index')
-    }
-
+    show(param)
     _store = getLocal()
     _.class('course').text(_store.couresTitle)
     setCourseProgress()
@@ -126,10 +121,11 @@ export default class Exam extends Page {
 }
 
 /**
- * @param {any} param
+ * 初始化
+ * @param {Page} pg
  */
-function init(param) {
-  const nav = new Navbar(this, {
+function init(pg) {
+  const nav = new Navbar(pg, {
     el: _.class('navbar'),
     // active: 'btnHome',
   })
@@ -144,9 +140,10 @@ function init(param) {
  * @param {*} param
  */
 function bind(param) {
-  _.btnRun.click((/** @type {any} */ ev) => {
+  // @ts-ignore
+  _.btnRun.click(ev => {
     loadFrame()
-    const cnt = run(_r)
+    const cnt = check(_r)
     submit(_r, cnt)
     setCourseProgress()
   })
@@ -183,11 +180,10 @@ function back(param) {
 
 /**
  * 加载挑战
- * @param {number} courseid|challid - 课程id 或 挑战id
+ * @param {number=} courseid|challid - 课程id 或 挑战id
  * @param {number} [step = 0] 课程id 必须带 step
  */
 async function loadChall(courseid, step = 0) {
-  $.app.dialog.preloader()
   try {
     let r
     if (!courseid) {
@@ -234,7 +230,6 @@ async function loadChall(courseid, step = 0) {
   } catch (e) {
     log.err(e, 'loadChall')
   }
-  $.app.dialog.close()
 }
 
 /**
@@ -289,7 +284,7 @@ async function showCode(code, lang) {
       wordWrap: 'on',
     })
 
-    _editor.onDidChangeModelContent((/** @type {any} */ e) => {
+    _editor.onDidChangeModelContent(e => {
       loadFrame()
     })
   } catch (e) {
@@ -307,7 +302,7 @@ function loadFrame() {
   <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js">
   </script>
   <script>
-  function test(assert,user_code,code){
+  function test(assert,user_code,code,__helpers){
     try { 
       eval(user_code)
     } catch (err) {
@@ -327,28 +322,32 @@ function loadFrame() {
 }
 
 /**
- * 运行输入代码
+ * 检测输入代码
  * @param {*} rs
  * @returns {number}
  */
-function run(rs) {
+function check(rs) {
   let R = 0
   try {
     if (!rs.tests.length) return
+    const {title, tests, challengeFiles} = rs
+    const {head, tail} = challengeFiles[0]
+    log({title}, 'check')
 
     /** @type {*} */
     const ts = []
 
     let code = _editor.getValue()
     let cnt = 0
+    const x = {assert, AssertionError, code, __helpers} // ReferenceError
     // 测试输入代码
-    rs.tests.forEach((/** @type {{ testString: string; text: any; }} */ test) => {
+    tests.forEach(t => {
       let passed = true
       let flag = true
       try {
         if (_store.type === 'html') {
-          console.log(test.testString)
-          const err = _.class('testUi')[0].contentWindow.test(window.assert, test.testString, code)
+          console.log(t.testString)
+          const err = _.class('testUi')[0].contentWindow.test(window.assert, t.testString, code,__helpers)
           console.log(err)
           if (err) {
             flag = false
@@ -356,8 +355,13 @@ function run(rs) {
           }
         } else {
           code = code.replace(/export\s*/g, '')
-          console.log(test.testString)
-          eval(code + rs.challengeFiles[0].tail + '\n' + test.testString)
+          // eval(code + '\n' + t.testString)
+          // 封装到函数中执行
+          const rt = run(code, t.testString, x, head, tail)
+          if (!rt.pass) {
+            flag = false
+            passed = false
+          }
         }
         // 样式函数
         // assertExcption
@@ -367,8 +371,8 @@ function run(rs) {
         passed = false
       }
 
-      if (flag) ts.push({text: test.text, icon: '&#xe664;', color: '#00ff00', passed})
-      else ts.push({text: test.text, icon: '&#xe86d;', color: 'red', passed})
+      if (flag) ts.push({text: t.text, icon: '&#xe664;', color: '#00ff00', passed})
+      else ts.push({text: t.text, icon: '&#xe86d;', color: 'red', passed})
       if (passed) cnt++
     })
 
@@ -382,6 +386,57 @@ function run(rs) {
   }
 
   return R
+  
+}
+
+/**
+ * 运行代码测试
+ * 替代 eval，减少安全漏洞，eval 会带入了所有内存上下文变量，导致数据泄露！
+ *
+ * @param {string} code 编写代码
+ * @param {string} test 测试代码
+ * @param {*} [x] 辅助变量
+ * @param {string} [head] 头部代码
+ * @param {string} [tail] 尾部代码
+ * @returns
+ */
+function run(code, test, x, head, tail) {
+  const body = `
+    "use strict"
+    let R =  { pass: false }
+    const {code, assert, AssertionError, __helpers} = x // ReferenceError
+    try {   
+      ${head}
+      ${code}
+      ${tail}
+
+      ${test}
+
+      R = { pass: true }
+    } catch(err) {
+      if (!(err instanceof AssertionError)) console.error(err)
+        
+      // to provide useful debugging information when debugging the tests, we
+      // have to extract the message, stack and, if they exist, expected and
+      // actual before returning
+      R = {
+        pass: false,
+        err: {
+          message: err.message || '',
+          stack: err.stack,
+          expected: err.expected || '',
+          actual: err.actual || ''
+        }
+      }
+    }
+    
+    return R
+  `
+
+  log({body}, 'run')
+
+  // eslint-disable-next-line no-new-func
+  return Function('x', body)(x)
 }
 
 // async function getData() {
@@ -396,7 +451,6 @@ function run(rs) {
  * @param {number} count - 正确数
  */
 async function submit(r, count = 0) {
-  console.log(count);
   try {
     if (!r || !r.id || !$.app.user) return
 
@@ -409,7 +463,7 @@ async function submit(r, count = 0) {
       code: _editor.getValue(),
       start: $.date('yyyy-MM-dd hh:mm:ss', startTime),
       stop: $.date('yyyy-MM-dd hh:mm:ss', stopTime),
-      count ,
+      count,
     }
     const rs = await post(`${api.camp.addExam}`, d)
     log({d, rs}, 'submit')
@@ -448,7 +502,6 @@ async function setCourseProgress() {
   let {couresId} = getLocal()
   let progress = '0'
   const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-  console.log(stu);
   if (stu?.course?.length) {
     for (const c of stu.course) {
       c.count && c.id == parseInt(couresId) ? (progress = computedSch(c.count, c.total)) : progress
@@ -464,7 +517,6 @@ async function setCourseProgress() {
  * @param {*} total
  */
 function computedSch(count, total) {
-  console.log(count)
   return ((count / total) * 100).toFixed(0)
 }
 
