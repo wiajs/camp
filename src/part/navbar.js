@@ -3,7 +3,6 @@
  */
 import {Event} from '@wiajs/core'
 import Api from '../util/api'
-import _ from 'lodash'
 
 const _html = require('./navbar.html').default
 
@@ -35,7 +34,7 @@ export default class Navbar extends Event {
 
     loadUserImg().then(res => {
       console.log(res)
-      this.opt.el.class('userimg')[0].src = res
+      if (res) this.opt.el.class('userimg')[0].src = res
     })
   }
 
@@ -59,12 +58,14 @@ export default class Navbar extends Event {
     })
 
     n.name('btnLogin').click(ev => {
-      localStorage.removeItem('coures')
-      localStorage.removeItem('nuoya/camp/token')
-      localStorage.removeItem('nuoya/camp/chall')
-      localStorage.removeItem('nuoya/camp/mobile')
-      $.go('login')
+      // ???
+      // localStorage.removeItem('coures')
+      // localStorage.removeItem('nuoya/camp/token')
+      // localStorage.removeItem('nuoya/camp/chall')
+      // localStorage.removeItem('nuoya/camp/mobile')
+      $.go('login', {relogin: true})
     })
+
     n.name('fullScreen').click(ev => {
       let falg = true
       if (!document.fullscreenElement && falg === true) {
@@ -91,8 +92,15 @@ export default class Navbar extends Event {
 }
 
 async function loadUserImg() {
-  const u = $.app.user
-  if (!u.studentid) $.go('mine/user')
-  const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-  return stu.avatar
+  let R
+  try {
+    const u = $.app.user
+    if (!u.studentid) $.go('mine/user')
+    else {
+      const stu = await new Api('camp/student').get({q: {id: u.studentid}})
+      R = stu.avatar ?? 'https://camp.wia.pub/img/avator.png'
+    }
+  } catch (e) {}
+
+  return R
 }

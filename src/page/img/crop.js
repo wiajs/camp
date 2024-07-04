@@ -1,20 +1,10 @@
 import {Page} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
 import {canvasToBlob} from '@wiajs/lib/img/util'
-import Cropper from '@wiajs/ui/cropper' // eslint-disable-line
-// import Cropper from '../../ui/cropper' // eslint-disable-line
+import Cropper from '@wiajs/ui/cropper'
 
 /** @type {*} */
 const {$} = window
-
-/** @type {*} */
-let _ = null // current page
-
-/** @type {*} */
-const _from = {}
-
-/** @type Cropper */
-let _cropper
 
 /** @typedef {{app?:*, name?: string, title?: string}} OptType */
 
@@ -27,6 +17,15 @@ const def = {
 
 // 创建模块专用 log
 const log = Log({m: def.name}) // 类日志实例
+
+/** @type {*} */
+let _ = null // current page
+
+/** @type {*} */
+const _from = {}
+
+/** @type Cropper */
+let _cropper
 
 export default class Crop extends Page {
   /** @param {OptType} opts */
@@ -108,9 +107,7 @@ function init(param) {
     aspectRatio: param?.aspectRatio ?? 1, // 裁剪宽高比
     // autoCropArea: 1, // 裁剪框比例, default 0.8
     el: _.class('crop'), // 组件容器
-    // el: img.dom,
     // viewMode: 3, // 1：不超过画布的大小 3: 画布填充容器（会变形）
-    pc: true, // pc 模式
     preview: '.preview', // 需固定宽度，宽度不变，高度变
   })
 }
