@@ -1,4 +1,5 @@
-/** @jsx jsx */
+/** @jsx-x jsx */
+/** @jsxImportSource @wiajs/core */
 import {Page, jsx} from '@wiajs/core'
 import Msgbar from '@wiajs/ui/messagebar'
 import Msg from '@wiajs/ui/messages'

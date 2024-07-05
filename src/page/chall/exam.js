@@ -1,7 +1,7 @@
-import {Page, jsx} from '@wiajs/core'
-import {log as Log} from '@wiajs/util'
-import {assert, AssertionError, ReferenceError} from 'chai' // v4.4.1， 5 只支持 esm
+import {Page} from '@wiajs/core'
+import {assert, AssertionError} from 'chai' // v4.4.1， 5 只支持 esm ReferenceError
 import * as __helpers from '@freecodecamp/curriculum-helpers'
+import {log as Log} from '@wiajs/util'
 import {delay, post} from '../../util/tool'
 import * as store from '../../util/store'
 import Navbar from '../../part/navbar'
@@ -142,7 +142,7 @@ function bind(param) {
   // @ts-ignore
   _.btnRun.click(ev => {
     loadFrame()
-    const cnt = run(_r)
+    const cnt = check(_r)
     submit(_r, cnt)
     setCourseProgress()
   })
@@ -321,28 +321,32 @@ function loadFrame() {
 }
 
 /**
- * 运行输入代码
+ * 检测输入代码
  * @param {*} rs
  * @returns {number}
  */
-function run(rs) {
+function check(rs) {
   let R = 0
   try {
     if (!rs.tests.length) return
+    const {title, tests, challengeFiles} = rs
+    const {head, tail} = challengeFiles[0]
+    log({title}, 'check')
 
     /** @type {*} */
     const ts = []
 
     let code = _editor.getValue()
     let cnt = 0
+    const x = {assert, AssertionError, code, __helpers} // ReferenceError
     // 测试输入代码
-    rs.tests.forEach(test => {
+    tests.forEach(t => {
       let passed = true
       let flag = true
       try {
         if (_store.type === 'html') {
-          console.log(test.testString)
-          const err = _.class('testUi')[0].contentWindow.test(window.assert, test.testString, code)
+          console.log(t.testString)
+          const err = _.class('testUi')[0].contentWindow.test(window.assert, t.testString, code)
           console.log(err)
           if (err) {
             flag = false
@@ -350,7 +354,13 @@ function run(rs) {
           }
         } else {
           code = code.replace(/export\s*/g, '')
-          eval(code + '\n' + test.testString)
+          // eval(code + '\n' + t.testString)
+          // 封装到函数中执行
+          const rt = run(code, t.testString, x, head, tail)
+          if (!rt.pass) {
+            flag = false
+            passed = false
+          }
         }
         // 样式函数
         // assertExcption
@@ -360,8 +370,8 @@ function run(rs) {
         passed = false
       }
 
-      if (flag) ts.push({text: test.text, icon: '&#xe664;', color: '#00ff00', passed})
-      else ts.push({text: test.text, icon: '&#xe86d;', color: 'red', passed})
+      if (flag) ts.push({text: t.text, icon: '&#xe664;', color: '#00ff00', passed})
+      else ts.push({text: t.text, icon: '&#xe86d;', color: 'red', passed})
       if (passed) cnt++
     })
 
@@ -375,6 +385,56 @@ function run(rs) {
   }
 
   return R
+}
+
+/**
+ * 运行代码测试
+ * 替代 eval，减少安全漏洞，eval 会带入了所有内存上下文变量，导致数据泄露！
+ *
+ * @param {string} code 编写代码
+ * @param {string} test 测试代码
+ * @param {*} [x] 辅助变量
+ * @param {string} [head] 头部代码
+ * @param {string} [tail] 尾部代码
+ * @returns
+ */
+function run(code, test, x, head, tail) {
+  const body = `
+    "use strict"
+    let R =  { pass: false }
+    const {code, assert, AssertionError, __helpers} = x // ReferenceError
+    try {   
+      ${head}
+      ${code}
+      ${tail}
+
+      ${test}
+
+      R = { pass: true }
+    } catch(err) {
+      if (!(err instanceof AssertionError)) console.error(err)
+        
+      // to provide useful debugging information when debugging the tests, we
+      // have to extract the message, stack and, if they exist, expected and
+      // actual before returning
+      R = {
+        pass: false,
+        err: {
+          message: err.message || '',
+          stack: err.stack,
+          expected: err.expected || '',
+          actual: err.actual || ''
+        }
+      }
+    }
+    
+    return R
+  `
+
+  log({body}, 'run')
+
+  // eslint-disable-next-line no-new-func
+  return Function('x', body)(x)
 }
 
 // async function getData() {

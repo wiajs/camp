@@ -1,5 +1,6 @@
-/** @jsx jsx */
-import {Event, jsx} from '@wiajs/core'
+/** @jsx-x jsx */
+/** @jsxImportSource @wiajs/core */
+import {Event} from '@wiajs/core'
 import cfg from '../config/app'
 
 const {$} = window
@@ -63,7 +64,7 @@ export default class Leftbar extends Event {
             </a>
             <div class='accordion-item-content'>
               <div class='list'>
-                <ul>{rs.join('')}</ul>
+                <ul>{rs}</ul>
               </div>
             </div>
           </li>
@@ -81,7 +82,7 @@ export default class Leftbar extends Event {
         )
       })
       let v
-      if (gs.length > 0) v = $(`<ul>${gs.join('')}</ul>`)
+      if (gs.length > 0) v = $(<ul>{gs}</ul>)
       this.opt.el.child(v)
 
       this.active(this.opt.active)
