@@ -301,7 +301,7 @@ function loadFrame() {
   <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js">
   </script>
   <script>
-  function test(assert,user_code,code){
+  function test(assert,user_code,code,__helpers){
     try { 
       eval(user_code)
     } catch (err) {
@@ -346,7 +346,12 @@ function check(rs) {
       try {
         if (_store.type === 'html') {
           console.log(t.testString)
-          const err = _.class('testUi')[0].contentWindow.test(window.assert, t.testString, code)
+          const err = _.class('testUi')[0].contentWindow.test(
+            window.assert,
+            t.testString,
+            code,
+            __helpers
+          )
           console.log(err)
           if (err) {
             flag = false
@@ -526,7 +531,8 @@ function loadEditor() {
 
   const sc1 = document.createElement('script') // 创建一个script标签
   sc1.type = 'text/javascript'
-  sc1.src = 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js'
+  // sc1.src = 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js'
+  sc1.src = 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/vs/loader.min.js'
   $('body').append(sc1)
 
   // 在页面加载完成后初始化 Monaco Editor
@@ -538,7 +544,7 @@ function loadEditor() {
       // 指定Monaco Editor的路径
       require.config({
         paths: {
-          vs: 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.43.0/min/vs/',
+          vs: 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/vs/',
         },
       })
 
@@ -548,8 +554,8 @@ function loadEditor() {
         getWorkerUrl: function (workerId, label) {
           const r = encodeURIComponent(
             'self.MonacoEnvironment = {' +
-              'baseUrl: "https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.43.0/min/"};' +
-              'importScripts("https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.43.0/min/vs/base/worker/workerMain.min.js");'
+              'baseUrl: "https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/"};' +
+              'importScripts("https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/vs/base/worker/workerMain.min.js");'
           )
           return 'data:text/javascript;charset=utf-8,' + r
         },
