@@ -23,7 +23,7 @@ const getOpt = (dev = false) => {
         // decoratorMetadata: true, // decorators with emitDecoratorMetadata enabled
         // decoratorVersion: '2022-03', // "2021-12" (default)
         react: {
-          runtime: 'classic', // automatic or classic automatic 使用 JSX 运行时（在React 17 中引入）
+          runtime: 'automatic', // automatic or classic automatic 使用 JSX 运行时（在React 17 中引入）
           // throwIfNamespace: true,
           // useBuiltins: true,
           development: dev,

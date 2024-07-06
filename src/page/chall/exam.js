@@ -1,6 +1,9 @@
 import {Page} from '@wiajs/core'
 import {assert, AssertionError} from 'chai' // v4.4.1， 5 只支持 esm ReferenceError
+<<<<<<< HEAD
 // @ts-ignore
+=======
+>>>>>>> 1856a687296045eabd2466ea3ebe2ed666a13ea8
 import * as __helpers from '@freecodecamp/curriculum-helpers'
 import {log as Log} from '@wiajs/util'
 import {delay, post} from '../../util/tool'
@@ -348,7 +351,6 @@ function check(rs) {
         if (_store.type === 'html') {
           console.log(t.testString)
           const err = _.class('testUi')[0].contentWindow.test(window.assert, t.testString, code,__helpers)
-          console.log(err)
           if (err) {
             flag = false
             passed = false
@@ -387,6 +389,56 @@ function check(rs) {
 
   return R
   
+}
+
+/**
+ * 运行代码测试
+ * 替代 eval，减少安全漏洞，eval 会带入了所有内存上下文变量，导致数据泄露！
+ *
+ * @param {string} code 编写代码
+ * @param {string} test 测试代码
+ * @param {*} [x] 辅助变量
+ * @param {string} [head] 头部代码
+ * @param {string} [tail] 尾部代码
+ * @returns
+ */
+function run(code, test, x, head, tail) {
+  const body = `
+    "use strict"
+    let R =  { pass: false }
+    const {code, assert, AssertionError, __helpers} = x // ReferenceError
+    try {   
+      ${head}
+      ${code}
+      ${tail}
+
+      ${test}
+
+      R = { pass: true }
+    } catch(err) {
+      if (!(err instanceof AssertionError)) console.error(err)
+        
+      // to provide useful debugging information when debugging the tests, we
+      // have to extract the message, stack and, if they exist, expected and
+      // actual before returning
+      R = {
+        pass: false,
+        err: {
+          message: err.message || '',
+          stack: err.stack,
+          expected: err.expected || '',
+          actual: err.actual || ''
+        }
+      }
+    }
+    
+    return R
+  `
+
+  log({body}, 'run')
+
+  // eslint-disable-next-line no-new-func
+  return Function('x', body)(x)
 }
 
 /**

@@ -1,4 +1,5 @@
-/** @jsx jsx */
+/** @jsx-x jsx */
+/** @jsxImportSource @wiajs/core */
 import {Page, jsx} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
 import Navbar from '../../part/navbar'
@@ -225,7 +226,7 @@ function loadCourse(r, count) {
                 </label>
               </div>
             </a>
-            <div class='accordion-item-content'>{detail.join('')}</div>
+            <div class='accordion-item-content'>{detail}</div>
           </li>
         </ul>
       </div>

@@ -1,5 +1,5 @@
-/** @jsx jsx */
-
+/** @jsx-x jsx */
+/** @jsxImportSource @wiajs/core */
 import {Page, jsx} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
 import Uploader from '@wiajs/ui/uploader'

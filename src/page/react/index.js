@@ -10,7 +10,7 @@ import {createRoot} from 'react-dom/client'
 
 import {Page} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
-// import Footer from '../comp/Footer'
+import Comp from './Comp.tsx'
 
 /** @type {*} */
 const {$} = window
@@ -100,46 +100,14 @@ export default class Index extends Page {
   }
 }
 
-function bind() {}
-
-function Comp() {
-  // return <h1>Hello from React!</h1>
-  // return (
-  //   <Alert variant="info">
-  //     <p>
-  //       <Link to="https://www.freecodecamp.org">Go to freeCodeCamp</Link>
-  //     </p>
-  //   </Alert>
-  // )
-  // return <Footer />
-  // const {t} = useTranslation()
-
-  return <h2>{'Welcome to React'}</h2>
-}
-
 function render() {
-  /*   i18n
-    .use(initReactI18next) // passes i18n down to react-i18next
-    .init({
-      // the translations
-      // (tip move them in a JSON file and import them,
-      resources: {
-        en: {
-          translation: {
-            'Welcome to React': 'Welcome to React and react-i18next',
-          },
-        },
-      },
-      lng: 'en', // if you're using a language detector, do not define the lng option
-      fallbackLng: 'en',
-
-      interpolation: {
-        escapeValue: false,
-      },
-    })
-
   // append comp to dom
   const root = createRoot(document.getElementById('comp'))
-  root.render(<Comp />)
- */
+  root.render(
+    <React.StrictMode>
+      <Comp />
+    </React.StrictMode>
+  )
 }
+
+function bind() {}
