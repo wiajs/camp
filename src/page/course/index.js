@@ -161,6 +161,10 @@ function bind() {
           couresId = 4
           type = 'javascript'
           break
+        case 'jQuery框架(DOM)':
+          couresId = 3
+          type = 'html'
+          break
         default:
           type = 'html'
           break

@@ -292,32 +292,73 @@ async function showCode(code, lang) {
 }
 
 /**
- *
- */
+ * 加载 iframe
+ * 
+        {
+            "link" : "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css"
+        }, 
+        {
+            "src" : "https://code.jquery.com/jquery-3.6.0.min.js"
+        }, 
+        {
+            "link" : "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.0/animate.css"
+        } */
 function loadFrame() {
-  const code = _editor.getValue()
-  _.class('testUi')[0].srcdoc = `
-  ${code}
-  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js">
-  </script>
-  <script>
-  function test(assert,user_code,code,__helpers){
-    try { 
-      eval(user_code)
-    } catch (err) {
-      return err
-    }
-  }
+  const {required: req} = _r
+  // @ts-ignore
+  let link = req.filter(f => f.link)
+  // @ts-ignore
+  if (link.length) link = link.map(lk => `<link rel="stylesheet" href="${lk.link}" />`)
+  // @ts-ignore
+  let src = req.filter(f => f.src)
+  // @ts-ignore
+  if (src.length) src = src.map(sc => `<script src="${sc.src}"></script>`)
 
-  function jqueryTest(assert,user_code,code){
-    try { 
-      eval(user_code + code)
-    } catch (err) {
-      return err
-    }
-  }
-  </script>
-  `
+  const code = _editor.getValue()
+
+  _.frUi.dom.srcdoc = `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    ${link.length ? link.join('\n') : ''}
+  </head>
+  <body>
+    ${src.length ? src.join('\n') : ''}
+    ${code}
+    <script>    
+      function run(code, test, x, head='', tail='') {        
+        let R = { pass: false }
+        const {assert, AssertionError, ReferenceError, __helpers} = x
+        try { 
+          eval(head + ';' + tail + ';' + test)
+          R = { pass: true }
+        } catch (err) {
+          if (!(err instanceof AssertionError)) console.error(err)
+          R = {
+            pass: false,
+            err: {
+              message: err.message || '',
+              stack: err.stack,
+              expected: err.expected || '',
+              actual: err.actual || ''
+            }
+          }
+        }
+        return R
+      }
+
+      function jqueryTest(assert,user_code,code){
+        try { 
+          eval(user_code + code)
+        } catch (err) {
+          return err
+        }
+      }
+    </script>
+  </body>
+</html>
+`
 }
 
 /**
@@ -330,7 +371,7 @@ function check(rs) {
   try {
     if (!rs.tests.length) return
     const {title, tests, challengeFiles} = rs
-    const {head, tail} = challengeFiles[0]
+    const {head, tail, runType} = challengeFiles[0]
     log({title}, 'check')
 
     /** @type {*} */
@@ -338,34 +379,22 @@ function check(rs) {
 
     let code = _editor.getValue()
     let cnt = 0
-    const x = {assert, AssertionError, code, __helpers} // ReferenceError
+    const x = {assert, AssertionError, ReferenceError, __helpers, runType} // ReferenceError
     // 测试输入代码
     tests.forEach(t => {
       let passed = true
       let flag = true
+      let rt = {pass: false}
       try {
-        if (_store.type === 'html') {
-          console.log(t.testString)
-          const err = _.class('testUi')[0].contentWindow.test(
-            window.assert,
-            t.testString,
-            code,
-            __helpers
-          )
-          console.log(err)
-          if (err) {
-            flag = false
-            passed = false
-          }
-        } else {
-          code = code.replace(/export\s*/g, '')
-          // eval(code + '\n' + t.testString)
-          // 封装到函数中执行
-          const rt = run(code, t.testString, x, head, tail)
-          if (!rt.pass) {
-            flag = false
-            passed = false
-          }
+        if (_store.type === 'html')
+          rt = _.frUi.dom.contentWindow.run(code, t.testString, x, head, tail)
+        else rt = run(code, t.testString, x, head, tail)
+
+        log({rt}, 'check')
+
+        if (!rt.pass) {
+          flag = false
+          passed = false
         }
         // 样式函数
         // assertExcption
@@ -403,17 +432,16 @@ function check(rs) {
  * @param {string} [tail] 尾部代码
  * @returns
  */
-function run(code, test, x, head, tail) {
+function run(code, test, x, head = '', tail = '') {
   const body = `
     "use strict"
     let R =  { pass: false }
-    const {code, assert, AssertionError, __helpers} = x // ReferenceError
+    const {code, assert, AssertionError, ReferenceError, __helpers} = x // ReferenceError
     try {   
-      ${head}
-      ${code}
-      ${tail}
-
-      ${test}
+      ${head}      
+      ;${x.runType === 1 ? '' : code}
+      ;${tail}
+      ;${test}
 
       R = { pass: true }
     } catch(err) {

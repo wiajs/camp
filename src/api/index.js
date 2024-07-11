@@ -38,6 +38,7 @@ const api = {
     findExam: 'camp/findExam',
     getExam: 'camp/getExam',
     addExam: 'camp/addExam',
+    getCollege: 'camp/getCollege',
     getMajor: 'camp/getMajor',
   },
 

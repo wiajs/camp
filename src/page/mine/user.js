@@ -7,8 +7,6 @@ import * as echarts from 'echarts/core'
 import {BarChart} from 'echarts/charts'
 import {TitleComponent, TooltipComponent, GridComponent} from 'echarts/components'
 import {CanvasRenderer} from 'echarts/renderers'
-// 注册必需的组件
-echarts.use([TitleComponent, TooltipComponent, GridComponent, BarChart, CanvasRenderer])
 // import Uploader from '../../ui/uploader'; // eslint-disable-line
 // import {signal, computed, effect, batch} from '@preact/signals-core';
 // import {signal, effect, batch} from '@wiajs/lib/signal'
@@ -19,6 +17,9 @@ import {promisify, post} from '../../util/tool'
 import Api from '../../util/api'
 import api from '../../api'
 import {bindStudent} from '../../api/user'
+
+// 注册必需的组件
+echarts.use([TitleComponent, TooltipComponent, GridComponent, BarChart, CanvasRenderer])
 
 /** @type {*} */
 const {$} = window
@@ -206,6 +207,10 @@ function bind() {
     }
   )
 
+  _.schoolid.on('change', () => {
+    const schoolid = Number.parseInt(_.schoolid.val())
+    loadCollege(schoolid)
+  })
   _.collegeid.on('change', () => {
     const collid = Number.parseInt(_.collegeid.val())
     loadMajor(collid)
@@ -223,8 +228,9 @@ async function show() {
 
   if (r) {
     _r = r
-    const collid = r.collegeid
-    await loadMajor(collid, collid)
+    const {schoolid, collegeid: collid, majorid} = r
+    await loadCollege(schoolid, collid)
+    await loadMajor(collid, majorid)
     _fm.setForm(r)
   }
 
@@ -262,7 +268,7 @@ async function save() {
         await promisify($.app.dialog.alert, 0)('修改成功!', '温馨提示!')
       }
     } else {
-      d.course = [{id: 5}, {id: 1}, {id: 2}, {id: 4}]
+      d.course = [{id: 5}, {id: 1}, {id: 2}, {id: 4}, {id: 3}]
       r = await _api.add(d)
       if (r) {
         _r = r // 保存
@@ -307,9 +313,28 @@ async function check(d) {
 }
 
 /**
+ * 更新学院
+ * @param {number} schoolid
+ * @param {number} [val = 0]
+ */
+async function loadCollege(schoolid, val = 0) {
+  if (schoolid) {
+    let rs = await post(`${api.camp.getCollege}`, {unitid: schoolid})
+    // log({rs}, 'getMajor')
+    if (rs.code === 200) {
+      rs = rs.data
+      // 清空学院下拉
+      _.collegeid.html('<option value="0" selected>请选择专业</option>')
+      // @ts-ignore
+      const opts = rs.map(r => <option value={r.id}>{r.name}</option>)
+      _.collegeid.append(opts).val(`${val}`)
+    }
+  }
+}
+/**
  * 更新专业
  * @param {number} collid
- * @param {number} [val = 0]
+ * @param {number} [val = 0] - 选择
  */
 async function loadMajor(collid, val = 0) {
   if (collid) {
@@ -448,6 +473,9 @@ function computedSch(count, total, id) {
       break
     case 2:
       data = {name: 'flexbox', value: ((count / total) * 100).toFixed(0)}
+      break
+    case 4:
+      data = {name: 'jQuery', value: ((count / total) * 100).toFixed(0)}
       break
     case 4:
       data = {name: 'Javascript', value: ((count / total) * 100).toFixed(0)}

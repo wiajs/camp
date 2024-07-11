@@ -29,8 +29,10 @@ const _data = [
   // },
   {
     p: ['&#xe608;', '我的'],
-    c: ['我的信息', '我的设置'],
-    a: ['mine/user', 'mine/index'],
+    // c: ['我的信息', '我的设置'],
+    // a: ['mine/user', 'mine/index'],
+    c: ['我的信息'],
+    a: ['mine/user'],
   },
 ]
 
