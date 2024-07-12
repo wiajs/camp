@@ -41,6 +41,9 @@ const _from = {}
 
 /** @type {*} */
 let _r
+
+let _ext = 'html'
+
 /**
  * @type {{type:string,couresTitle:string}} _store
  */
@@ -141,7 +144,7 @@ function init(pg) {
 function bind(param) {
   // @ts-ignore
   _.btnRun.click(ev => {
-    loadFrame()
+    if (_ext === 'html') loadFrame()
     const cnt = check(_r)
     submit(_r, cnt)
     setCourseProgress()
@@ -216,15 +219,18 @@ async function loadChall(courseid, step = 0) {
     const challF = r.challengeFiles[0]
     log(r, challF, 'loadChall')
     const {name, ext} = challF
+    _ext = ext // 全局保存
+
     const code = challF.contents
     const lang = ext === 'js' ? 'javascript' : ext
 
     await showCode(code, lang)
 
-    if (ext === 'html') _.frUi.show()
-    else _.frUi.hide()
+    if (ext === 'html') {
+      loadFrame()
+      _.frUi.show()
+    } else _.frUi.hide()
 
-    loadFrame()
     startTime = new Date()
   } catch (e) {
     log.err(e, 'loadChall')
@@ -244,14 +250,14 @@ function reset(r) {
     _.prompt.setView(ts)
 
     const challF = r.challengeFiles[0]
-    const {name, ext} = challF
     const code = challF.contents
 
     _editor.setValue(code)
 
-    if (ext === 'html') _.frUi.show()
-    else _.frUi.hide()
-    loadFrame()
+    if (_ext === 'html') {
+      loadFrame()
+      _.frUi.show()
+    } else _.frUi.hide()
   } catch (e) {
     log.err(e, 'resetChall')
   }
@@ -284,7 +290,7 @@ async function showCode(code, lang) {
     })
 
     _editor.onDidChangeModelContent(e => {
-      loadFrame()
+      if (_ext === 'html') loadFrame()
     })
   } catch (e) {
     log.err(e, 'showCode')
@@ -304,15 +310,20 @@ async function showCode(code, lang) {
             "link" : "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.0/animate.css"
         } */
 function loadFrame() {
+  if (_ext !== 'html') return
+
   const {required: req} = _r
   // @ts-ignore
-  let link = req.filter(f => f.link)
+  let link = req?.filter(f => f.link)
   // @ts-ignore
-  if (link.length) link = link.map(lk => `<link rel="stylesheet" href="${lk.link}" />`)
+  if (link?.length) link = link.map(lk => `<link rel="stylesheet" href="${lk.link}" />`)
   // @ts-ignore
-  let src = req.filter(f => f.src)
+  let src = req?.filter(f => f.src && !f.src.test('jquery')) ?? []
+  // "https://code.jquery.com/jquery-3.6.0.min.js"
+  src.push({src: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'})
+
   // @ts-ignore
-  if (src.length) src = src.map(sc => `<script src="${sc.src}"></script>`)
+  if (src?.length) src = src.map(sc => `<script src="${sc.src}"></script>`)
 
   const code = _editor.getValue()
 
@@ -377,7 +388,7 @@ function check(rs) {
     /** @type {*} */
     const ts = []
 
-    let code = _editor.getValue()
+    const code = _editor.getValue()
     let cnt = 0
     const x = {assert, AssertionError, ReferenceError, __helpers, runType} // ReferenceError
     // 测试输入代码
@@ -386,8 +397,7 @@ function check(rs) {
       let flag = true
       let rt = {pass: false}
       try {
-        if (_store.type === 'html')
-          rt = _.frUi.dom.contentWindow.run(code, t.testString, x, head, tail)
+        if (_ext === 'html') rt = _.frUi.dom.contentWindow.run(code, t.testString, x, head, tail)
         else rt = run(code, t.testString, x, head, tail)
 
         log({rt}, 'check')
@@ -433,6 +443,7 @@ function check(rs) {
  * @returns
  */
 function run(code, test, x, head = '', tail = '') {
+  x.code = code
   const body = `
     "use strict"
     let R =  { pass: false }
