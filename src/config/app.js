@@ -1,5 +1,5 @@
 /*
- * 项目配置文件
+ * 应用配置文件
  */
 import cfg from '../../wia.config'
 
@@ -7,6 +7,7 @@ const {
   owner,
   name,
   ver,
+  theme,
   appid,
   sid,
   file,
@@ -14,6 +15,9 @@ const {
   mode,
   dev: debug,
   local,
+  host,
+  cos,
+  api,
   load,
   sinkHost,
   sink,
@@ -23,6 +27,7 @@ const app = {
   owner,
   name,
   ver,
+  theme,
   appid,
   sid,
   file,
@@ -30,17 +35,16 @@ const app = {
   mode,
   debug,
   local,
-  load,
+  host,
+  cos,
+  api,
 
+  load,
   login: true, // 是否登录，包括微信网页或小程序静默登录、密码登录、手机验证登录
   bindMobile: true, // 绑定手机，如微信自动登录，需手机验证绑定用户手机
 
   sinkHost,
   sink,
-  host: 'https://wia.pub',
-  cos: 'https://cos.wia.pub',
-  // api: 'http://dev.wia.pub:11580',
-  api: 'https://test.lianlian.pub',
   ws: {
     url: 'wss://test.lianlian.pub', // websocket server 'ws://113.105.26.9:17249'
   },
@@ -56,7 +60,7 @@ const app = {
     lastCode: 'wx.lastCode',
   },
 
-  token: 'token', // 连连统一token
+  token: 'token', // wia统一token
   docker: 'wia.docker',
   uri: 'wia.uri',
   // sid: 'nuoya.sid',

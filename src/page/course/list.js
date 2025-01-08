@@ -2,10 +2,8 @@
 import {Page} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
 import Navbar from '../../part/navbar'
-import {post} from '../../util/tool'
 import * as store from '../../util/store'
 import Api from '../../util/api'
-import api from '../../api'
 
 /** @type {*} */
 const {$} = window

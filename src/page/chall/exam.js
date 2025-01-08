@@ -159,7 +159,7 @@ function init(pg) {
 
   _course = store.get('course')
 
-  loadEditor()
+  loadEditor(pg) // 页面直接加载
 }
 
 /**
@@ -908,21 +908,96 @@ async function setProgress(rs) {
 }
 
 /**
- * 向页面添加编辑器
+ * 向页面添加js，直接写入 div中无效
+ * @param {string} name
+ * @param {string} src
+ * @param {Page} pg
  */
-function loadEditor() {
+function addJsSrc(name, src, pg) {
+  const sc = document.createElement('script') // 创建一个script标签
+  sc.type = 'text/javascript'
+  sc.defer = true
+  sc.id = `js-${pg.id}-${name}`
+  if (!pg.js) pg.js = []
+  pg.js.push(sc.id) // 记录添加的js，后续需删除
+  sc.src = src
+  // $('body').append(sc)
+  _.append(sc)
+}
+
+/**
+ * 向页面添加js code，直接写入 div中无效
+ * @param {string} id
+ * @param {string} code
+ * @param {Page} pg
+ */
+function addJsCode(id, code, pg) {
+  const sc = document.createElement('script') // 创建一个script标签
+  sc.type = 'text/javascript'
+  // sc.defer = true
+  sc.id = id
+  if (!pg.js) pg.js = []
+  pg.js.push(sc.id) // 记录添加的js，后续需删除
+  sc.appendChild(document.createTextNode(code))
+  // $('body').append(sc)
+  // _.append(sc) // 带 自动执行功能，页面也会执行，相当于执行两次
+  _.dom.appendChild(sc)
+}
+
+/**
+ * 向页面添加编辑器
+ * @param {Page} pg
+ */
+function loadEditor(pg) {
   if (_editor) return
 
-  const sc1 = document.createElement('script') // 创建一个script标签
-  sc1.type = 'text/javascript'
-  sc1.src = 'https://lib.baomitu.com/monaco-editor/0.51.0/min/vs/loader.min.js'
+  // addJsSrc(
+  //   'require',
+  //   'https://camp.wia.pub/wia/require.min.js',
+  //   pg
+  // )
 
-  $('body').append(sc1)
+  // addJsSrc(
+  //   'monaco-editor-loader',
+  //   // 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js'
+  //   'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/vs/loader.min.js',
+  //   pg
+  // )
 
-  // 在页面加载完成后初始化 Monaco Editor
-  const sc2 = document.createElement('script') // 创建一个script标签
-  sc2.type = 'text/javascript'
+  // 按次序加载js资源后初始化 Monaco Editor，使用 window.monaco 访问
+  const id = `js-${pg.id}-load`
   const code = `
+  (async () => {  
+      async function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.onload = () => {
+            console.log(\`\${src} loaded\`);
+            resolve();
+          };
+          script.onerror = () => {
+            console.error(\`\${src} failed to load\`);
+            reject(new Error(\`Script load error: \${src}\`));
+          };
+          
+          const sc = document.getElementById('${id}')
+          sc.parentNode.insertBefore(script, sc);
+        });
+      }
+
+      async function loadScriptsInOrder() {
+        try {
+          await loadScript('https://camp.wia.pub/wia/require.min.js');
+          await loadScript('https://lib.baomitu.com/monaco-editor/0.51.0/min/vs/loader.min.js');
+          console.log('All scripts loaded in order');
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      await loadScriptsInOrder();      
+
       let _editor = false
 
       // 指定Monaco Editor的路径
@@ -953,10 +1028,9 @@ function loadEditor() {
           $('.page-master-detail').name('txCode').trigger('editor:ready')
         }
       })    
+  })()        
 `
-  sc2.appendChild(document.createTextNode(code))
-
-  $('body').append(sc2)
+  addJsCode(id, code, pg)
 }
 
 function debounce(fn, delay) {

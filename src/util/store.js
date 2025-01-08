@@ -5,11 +5,11 @@ import {log as Log} from '@wiajs/util'
 
 const log = Log({m: 'util/store'})
 
-/** {*} */
+/** @type {*} */
 const {$} = window
 
 function pre() {
-  return `${$.app.cfg.owner}/${$.app.cfg.name}`
+  return `${$.app.owner}/${$.app.name}`
 }
 
 /**

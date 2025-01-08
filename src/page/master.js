@@ -44,7 +44,9 @@ const _name = 'master'
 const _title = ''
 
 // 全局数据
+/** @type {*} */
 let _from = {}
+/** @type {*} */
 let _
 
 export default class Master extends Page {
@@ -102,9 +104,16 @@ function init() {
 
 function bind() {}
 
+/**
+ * master 发起的二次路由
+ * 避免循环路由，#/nuoya/camp/master 会导致循环路由
+ * 缺省 course/index
+ */
 function router() {
+  const hash = location.hash.replace(/^#!|^#/, '')
   const u = $.app.user
   if (!u.studentid) $.go('mine/user')
-  else if (_from.path) $.go(_from.path, _from.param)
+  else if (_from.to && !/^\/?master$/.test(_from.to) && _from.to !== hash)
+    $.go(_from.to, _from.param)
   else $.go('course/index')
 }

@@ -1,13 +1,13 @@
 {
   "name": "camp",
   "author": "nuoya",
-  "version": "1.1.0",
-  "description": "wia code camp",
+  "version": "1.1.1",
+  "description": "code camp",
   "scripts": {
     "build-rs": "cross-env NODE_ENV=production rspack build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "cross-env NODE_ENV=development WIA_MODE=local gulp",
-    "build": "cross-env NODE_ENV=production WIA_MODE=local gulp",
+    "build": "cross-env NODE_ENV=production gulp",
     "build:js": "cross-env NODE_ENV=production rspack build",
     "esbuild": "esbuild bin/entry.js --bundle --outfile=bin/out.js",
     "swc": "swc --config-file ./.swcrc src -w -d build",

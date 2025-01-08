@@ -1,12 +1,11 @@
 import $ from '@wiajs/dom'
-// import {$} from '@wiajs/dom';
 import Router from '@wiajs/router'
 // import Router from './router'
 import {log as Log} from '@wiajs/util'
 import App from './app'
 import {getUser, getToken} from './api/user'
 import * as store from './util/store'
-import pages from './pages' // 请保留，用于自动引入page模块打包
+import pages from './pages' // 请保留，用于自动引入page模块调试打包
 
 import cfg from './config/app'
 import api from './api'
@@ -15,20 +14,40 @@ const log = Log({m: 'index'})
 
 const vite = false // vite or  webpack
 
-// 创建初始应用，所有页面均通过初始应用加载
+// 应用必备参数
+const def = {
+  owner: cfg.owner, // 所有者
+  name: cfg.name, // 应用名称
+  ver: cfg.ver, // 应用版本
+  theme: cfg.theme || 'auto', // 主题：auto ios md pc
+}
+
+/**
+ * 应用类，由router动态加载后创建实例
+ * 页面实例通过 $.app 引用应用实例，获得应用配置参数，如 api等
+ * 跳转应用页面时，会检查当前应用是否与页面匹配，不匹配，自动切换创建应用，确保页面与当前应用一致
+ */
 export default class WiaApp extends App {
+  /**
+   * 应用构造函数，由 Router 创建应用实例
+   * @param {*} opts
+   */
   constructor(opts) {
-    opts = opts || {}
-    // super(opt.app);
-    super(opts)
-    console.log('app constructor:', {opt: opts})
-    this.cfg = cfg
+    const opt = {...def, ...opts}
+    console.log('WiaApp constructor:', {opt})
+    super(opt)
+    const {owner, name, ver, theme} = opt
+    this.owner = owner // 所有者
+    this.name = name // 应用名称
+    this.ver = ver // 应用版本
+    this.theme = theme // 主题
+    this.opt = opt
+    this.cfg = cfg // 应用设置
     this.api = api
   }
 
   /**
    * 应用被加载时触发
-   * @param {*} param
    */
   load() {
     log('wia app load')
@@ -36,7 +55,6 @@ export default class WiaApp extends App {
 
   /**
    * 应用创建就绪时触发，整个生命周期只触发一次
-   * @param {*} param
    */
   ready() {
     log('wia app ready...')
@@ -64,40 +82,13 @@ export default class WiaApp extends App {
   }
 }
 
-pages['./src/index'] = WiaApp
+// @ts-ignore
+pages['./src/index'] = WiaApp // 传递给route，用于vite模式创建应用实例
 
 /**
- * wia 独立运行时，页面就绪触发，其他wia应用跳转不会触发
- * 所有wia 共享一个全局路由器
- */
-$.ready(() => {
-  try {
-    // alert(`ver:${cfg.ver}`);
-    log(`wia app(${cfg.ver}) start...`)
-
-    // 所有应用共享一个路由，每个应用都可能作为入口，需创建路由
-    // 路由创建 应用
-    // 创建带版本号的路由器，通过版本号控制页面文件版本
-    const router = new Router({
-      // app,
-      el: '#wia-app',
-      view: 'wia-view',
-      theme: 'pc', // 主题：auto ios md pc
-      owner: cfg.owner,
-      name: cfg.name,
-      cos: cfg.cos,
-      local: cfg.local,
-      ver: cfg.ver,
-      mode: cfg.mode, // 本地调试时，需设置为 local，生产发布时需设置为 pub
-      pages: vite ? pages : undefined, // 用于 vite 本地调试
-    })
-  } catch (ex) {
-    console.log(`ready exp:${ex.message}`)
-  }
-})
-
-/**
- * wia应用容器显示时调用
+ * 应用启动/切换时，将路由控制交给应用处理，应用需处理hash加载
+ * 如缺省路由、master/detail 路由等
+ * 应用在当前运行时，通过 hash 直接加载页面，不再通过当前函数
  * @param {*} hash hash
  * @param {*} param 参数
  *  state 微信oAuth通过state传参数
@@ -164,11 +155,11 @@ async function main(hash, param) {
       // else if (hash.match('/class/|/exam/|/mine/|/msg/|/dist'))
       // 先加载master页面，由master加载detail页面 $.go('pay/index');
       // $.go('master', {path: hash, param})
-      else if (hash) $.go('master', {path: hash, param})
+      else if (hash) $.go('master', {to: hash, param})
       // $.go(hash, param)
       // 打开指定 hash
       // else $.go('index', param) // 默认加载首页
-      else $.go('master', {path: 'chall/index'})
+      else $.go('master', {to: 'course/index'})
     } else if ($.device.wx && cfg.wx.autoAuth) wxAuth()
     // 非微信环境，手机验证登录进入
     else if (cfg.login) $.go('login')
@@ -203,3 +194,35 @@ function wxAuth() {
     window.location.href = href
   }
 }
+
+/**
+ * 以下为wia应用启动代码，需保留，用于加载当前应用及其他wia应用
+ * 创建的路由器为所有wia应用全局共用
+ * 所有应用、页面均有路由器下载、加载、运行
+ * wia 属于spa应用，只有一个页面，启动应用运行时触发 该函数
+ * 启动后，跳转其他wia应用时，通过动态加载index代码，不再加载index页面，不会触发该函数
+ * index.html 页面仅作为wia应用容器，不能放应用相关内容
+ */
+// @ts-ignore
+$.ready(() => {
+  try {
+    // alert(`ver:${cfg.ver}`);
+    log(`wia app(ver:${cfg.ver}) start...`)
+
+    // 所有应用共享一个路由，每个应用都可能作为入口，需创建路由
+    // 路由创建 应用
+    // 创建带版本号的路由器，通过版本号控制页面文件版本
+    const router = new Router({
+      // app,
+      el: '#wia-app',
+      view: 'wia-view',
+      cos: cfg.cos, // 托管网址
+      local: cfg.local, // 调式模式打包路径
+      ver: cfg.ver,
+      mode: cfg.mode, // 本地调试时，需设置为 local，生产发布时需设置为 pub
+      pages: vite ? pages : undefined, // 用于 vite 本地调试
+    })
+  } catch (ex) {
+    console.log(`ready exp:${ex.message}`)
+  }
+})

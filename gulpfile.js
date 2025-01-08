@@ -37,7 +37,7 @@ const _mapDelay = 5 // 延迟10秒，执行源代码文件扫描
 
 // NODE_ENV 系统变量
 const env = process.env.NODE_ENV || 'development' // development production
-const mode = process.env.WIA_MODE || 'local' // local pub
+const mode = process.env.WIA_MODE || wiacfg.mode || 'local' // local pub
 const isProd = env === 'production'
 const isDev = !isProd
 const isPub = mode === 'pub'

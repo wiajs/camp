@@ -8,15 +8,17 @@ const cfg = {
   owner: pkg.author,
   name: pkg.name,
   ver: pkg.version,
+  theme: 'pc',
 
   appid: 7,
   sid: '6', // '11', 指定登录的哪个平台（不同网站、不同服务号等），用于区分不同平台用户
 
-  // 指定编译文件
+  // 指定编译文件、路径
   file: ['index.js', 'page'], // 打包的入口，文件或路径
   exclude: ['ui', 'part', 'tmp', 'doc', 'test', 'page.bak'], // 排除
 
   mode: 'local', // 打包代码， 是否压缩， 生产时需设置为 prod，调试 dev, 本地调试 local
+  // mode: 'pub', // 打包代码， 是否压缩， 生产时需设置为 prod，调试 dev, 本地调试 local，pub 发布应用
   vite: false, // vite 调试模式，不使用webpack打包
 
   dev: {
@@ -31,11 +33,14 @@ const cfg = {
   sink: 'https://lianlian.pub/sink/#!/nuoya/sink/play/',
   // sinkHost: 'http://localhost:3008', // 本地调试
   // sink: 'http://localhost:3008/sink/#!/nuoya/sink/play/', // 本地调试
-
-  // api: 'https://api.wia.pub';
-  // api: 'http://localhost:3000'; // 本地调试
   local: 'https://camp.wia.pub/wia', // 服务器调试
   // local: "http://localhost:3008", // 本地调试
+  host: 'https://wia.pub',
+  cos: 'https://cos.wia.pub',
+  // api: 'https://api.wia.pub';
+  // api: 'http://localhost:3000'; // 本地调试
+  api: 'https://test.lianlian.pub',
+
   load: ['/nuoya/wia/wia.js?v=1.0.42', '/nuoya/mall/page.js?v=${ver}'], // 加载依赖资源
   // load: ['/wia.js?v=1.0.42', '/page.js?v=${ver}'], // 加载依赖资源
 }
