@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <body>
+    <div id="app">{{ message }}</div>
+
+    <div class="block-title">Buttons</div>
+    <div class="block block-strong block-outline-ios">
+      <p class="grid grid-cols-3 grid-gap">
+        <button class="button button-raised">Button</button>
+        <button class="button button-raised button-fill">Fill</button>
+        <button class="button button-outline button-raised">Outline</button>
+      </p>
+      <p class="grid grid-cols-3 grid-gap">
+        <button class="button button-raised button-round">Round</button>
+        <button class="button button-raised button-fill button-round">Fill</button>
+        <button class="button button-outline button-round button-raised">Outline</button>
+      </p>
+      <p class="grid grid-cols-3 grid-gap">
+        <button class="button button-raised color-red">Red</button>
+        <button class="button button-raised button-fill button-round color-green">Green</button>
+        <button class="button button-outline button-round button-raised color-orange">
+          Orange
+        </button>
+      </p>
+    </div>
+
+    <script src="https://cdn.staticfile.net/vue/3.3.4/vue.global.prod.min.js"></script>
+    <script src="https://camp.wia.pub/wia/vtl.min.js"></script>
+    <script type="module">
+      ;(async () => {
+        const {createApp, ref} = Vue
+
+        const {mount, shallowMount} = Vtl
+
+        let app
+        // let app = createApp({
+        //   setup() {
+        //     const message = ref('Hello Vue!')
+        //     return {
+        //       message,
+        //     }
+        //   },
+        // })
+        // let code =
+
+        // debugger
+        // const mt = code.match(/(<script>[\s\S]+<\/script>)[\s\S]*(<template>[\s\S]+</template>)[\s\S]*(<style>[\s\S]+</style>)/)
+        // console.log({mt})
+        // return
+
+        // app = createApp({
+        //   template: '<h1>{{ msg }}</h1>',
+        // })
+        // app = createApp({
+        //   template: '<h1>{{ msg }}</h1>',
+        //   data() {
+        //     return {
+        //       msg: 'Hello World!',
+        //     }
+        //   },
+        // })
+        app.mount('#app')
+
+        const MessageComponent = {
+          template: '<p>{{ msg }}</p>',
+          props: ['msg'],
+        }
+
+        let wrapper = mount(MessageComponent, {
+          props: {
+            msg: 'Hello world',
+          },
+        })
+
+        let tx = wrapper.text()
+
+        let Comp = {
+          template: `<div>{{ msg1 }} {{ msg2 }}</div>`,
+          props: ['msg1'],
+          data() {
+            return {
+              msg2: 'world',
+            }
+          },
+        }
+
+        wrapper = mount(Comp, {
+          props: {
+            msg1: 'hello',
+          },
+        })
+
+        // const wrapper = mount(app)
+        tx = wrapper.html()
+
+        Comp = {
+          template: `
+                  <div>
+                      <input type="email" v-model="email" />
+
+                      <button @click="submit">Submit</button>
+                    </div>
+                  `,
+          props: ['msg1'],
+          data() {
+            return {
+              email: '',
+            }
+          },
+          methods: {
+            submit() {
+              this.$emit('submit', this.email)
+            },
+          },
+        }
+        wrapper = mount(Comp)
+        const input = wrapper.find('input')
+        await input.setValue('my@mail.com')
+
+        tx = input.element.value
+
+        // debugger
+        console.log(tx)
+      })()
+    </script>
+  </body>
+</html>

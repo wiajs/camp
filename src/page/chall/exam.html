@@ -13,7 +13,7 @@
         </div>
         <h1 class="course"></h1>
         <div class="progressbar color-red" data-progress="0">
-          <span></span>  
+          <span></span>
         </div>
         <span class="center_text">完成20%</span>
       </div>
@@ -23,32 +23,39 @@
     </div>
   </div>
   <div class="page-content">
-    <div style="flex: 1; height: 100%; overflow-y: scroll">
-      <div class="describe">
-        <h1 name="title" style="text-align: center; font-size: 18px"></h1>
-        <div class="describe_item_bottom">
-          <button name="btnRun" class="run">运行测试</button>
-          <button name="btnReset" class="resetting">重置课程</button>
-          <div class="test">测试</div>
-          <div name="prompt" class="prompt">
-            <li name="prompt-tp" class="tests">
-              <span class="s iconfont" icon_id="${encodeURIComponent(r.icon)}"
-                style="color:${r.color};">${r.icon}</span>
-              <div class="t">${r.text}</div>
-            </li>
-          </div>
+    <div class="describe">
+      <h1 name="title" style="text-align: center; font-size: 18px"></h1>
+      <p name="txAuthor" class="author"></p>
+      <div class="describe_item_bottom">
+        <button name="btnRun" class="run">运行测试</button>
+        <button name="btnReset" class="resetting">重置课程</button>
+        <div class="test">测试</div>
+        <div name="prompt" class="prompt">
+          <li name="prompt-tp" class="tests">
+            <span
+              class="s iconfont"
+              icon_id="${encodeURIComponent(r.icon)}"
+              style="color:${r.color};"
+              >${r.icon}</span
+            >
+            <div class="t">${r.text}</div>
+          </li>
         </div>
-        <div name="desc" class="describe_item_top">
-          <div name="desc-tp">
-            ${r.description} ${r.title} ${r.instructions}
-            <hr />
-          </div>
+      </div>
+      <div name="desc" class="describe_item_top">
+        <div name="desc-tp">
+          ${r.description} ${r.title} ${r.instructions}
+          <hr />
         </div>
       </div>
     </div>
-    <div style="flex: 1; height: 100%">
-      <div name="txCode" class="code"></div>
+    <div name="txCode" class="editor"></div>
+    <iframe name="frUi" class="frame" title="frame" style="display: none"> </iframe>
+    <div name="dvSink" class="sink" style="display: none">
+      <div class="sink-frame">
+        <iframe name="frSink" width="320" height="548" frameborder="0" scrolling="on"></iframe>
+        <div class="fade-overlay"></div>
+      </div>
     </div>
-    <iframe name="frUi" class="testUi" style="flex: 1; overflow-y: scroll; display: none"> </iframe>
   </div>
 </div>

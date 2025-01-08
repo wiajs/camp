@@ -27,10 +27,15 @@ const cfg = {
     // state: 'from=wxauth&to=join/edit&sid=2', // 电脑模拟微信服务号入口
     // state: 'from=pc&to=fee/edit&sid=1', // 调试模拟入口及sid，
   },
+  sinkHost: 'https://lianlian.pub/sink',
+  sink: 'https://lianlian.pub/sink/#!/nuoya/sink/play/',
+  // sinkHost: 'http://localhost:3008', // 本地调试
+  // sink: 'http://localhost:3008/sink/#!/nuoya/sink/play/', // 本地调试
+
   // api: 'https://api.wia.pub';
   // api: 'http://localhost:3000'; // 本地调试
   local: 'https://camp.wia.pub/wia', // 服务器调试
-  // local: 'http://localhost:3008', // 本地调试
+  // local: "http://localhost:3008", // 本地调试
   load: ['/nuoya/wia/wia.js?v=1.0.42', '/nuoya/mall/page.js?v=${ver}'], // 加载依赖资源
   // load: ['/wia.js?v=1.0.42', '/page.js?v=${ver}'], // 加载依赖资源
 }

@@ -1,26 +1,23 @@
-/** @jsx-x jsx */
-/** @jsxImportSource @wiajs/core */
+/** @jsx jsx */
+
 import {Page, jsx} from '@wiajs/core'
 import Uploader from '@wiajs/ui/uploader'
-// import * as echarts from 'echarts' // 4M size
-// import * as echarts from 'echarts/core'
-// import {BarChart} from 'echarts/charts'
-// import {TitleComponent, TooltipComponent, GridComponent} from 'echarts/components'
-// import {CanvasRenderer} from 'echarts/renderers'
+import * as echarts from 'echarts/core'
+import {BarChart} from 'echarts/charts'
+import {TitleComponent, TooltipComponent, GridComponent} from 'echarts/components'
+import {CanvasRenderer} from 'echarts/renderers'
+// 注册必需的组件
+echarts.use([TitleComponent, TooltipComponent, GridComponent, BarChart, CanvasRenderer])
 // import Uploader from '../../ui/uploader'; // eslint-disable-line
-// import {signal, computed, effect, batch} from '@preact/signals-core';
+// import {signal,lib/component/title" computed, effect, batch} from '@preact/signals-core';
 // import {signal, effect, batch} from '@wiajs/lib/signal'
 // import {reactive, ref, effect} from '@vue/reactivity'
 import {log as Log} from '@wiajs/util'
 import Navbar from '../../part/navbar'
 import {promisify, post} from '../../util/tool'
 import Api from '../../util/api'
-import * as store from '../../util/store'
 import api from '../../api'
 import {bindStudent} from '../../api/user'
-
-// 注册必需的组件
-// echarts.use([TitleComponent, TooltipComponent, GridComponent, BarChart, CanvasRenderer])
 
 /** @type {*} */
 const {$} = window
@@ -114,7 +111,7 @@ export default class User extends Page {
     _fm = v.name('fmData')
     log({v, param}, 'show')
     show()
-    // initEcharts()
+    initEcharts()
   }
 
   /**
@@ -208,10 +205,6 @@ function bind() {
     }
   )
 
-  _.schoolid.on('change', () => {
-    const schoolid = Number.parseInt(_.schoolid.val())
-    loadCollege(schoolid)
-  })
   _.collegeid.on('change', () => {
     const collid = Number.parseInt(_.collegeid.val())
     loadMajor(collid)
@@ -224,14 +217,13 @@ async function show() {
   if (!r) {
     const u = $.app.user // _data
     const q = {userid: u.id}
-    r = await _api.get({q, field: '-sign'})
+    r = await _api.get({q})
   }
 
   if (r) {
     _r = r
-    const {schoolid, collegeid: collid, majorid} = r
-    await loadCollege(schoolid, collid)
-    await loadMajor(collid, majorid)
+    const collid = r.collegeid
+    await loadMajor(collid, collid)
     _fm.setForm(r)
   }
 
@@ -269,7 +261,7 @@ async function save() {
         await promisify($.app.dialog.alert, 0)('修改成功!', '温馨提示!')
       }
     } else {
-      // d.course = [{id: 5}, {id: 1}, {id: 2}, {id: 4}, {id: 3}]
+      d.course = [{id: 5}, {id: 1}, {id: 2}, {id: 4}]
       r = await _api.add(d)
       if (r) {
         _r = r // 保存
@@ -314,28 +306,9 @@ async function check(d) {
 }
 
 /**
- * 更新学院
- * @param {number} schoolid
- * @param {number} [val = 0]
- */
-async function loadCollege(schoolid, val = 0) {
-  if (schoolid) {
-    let rs = await post(`${api.camp.getCollege}`, {unitid: schoolid})
-    // log({rs}, 'getMajor')
-    if (rs.code === 200) {
-      rs = rs.data
-      // 清空学院下拉
-      _.collegeid.html('<option value="0" selected>请选择专业</option>')
-      // @ts-ignore
-      const opts = rs.map(r => <option value={r.id}>{r.name}</option>)
-      _.collegeid.append(opts).val(`${val}`)
-    }
-  }
-}
-/**
  * 更新专业
  * @param {number} collid
- * @param {number} [val = 0] - 选择
+ * @param {number} [val = 0]
  */
 async function loadMajor(collid, val = 0) {
   if (collid) {
@@ -352,127 +325,110 @@ async function loadMajor(collid, val = 0) {
   }
 }
 
-/**
- * 加载用户头像
- * @returns
- */
 async function loadUserImg() {
-  let R
-  try {
-    const u = $.app.user
-    if (u.studentid) {
-      const stu = await new Api('camp/student').get({q: {id: u.studentid}, field: 'avatar'})
-      if (stu.avatar) {
-        await store.set('student.avatar', stu.avatar)
-        R = stu.avatar
-      }
-    }
-
-    R = R ?? 'https://camp.wia.pub/img/avator.png'
-  } catch (e) {
-    log.err(e, 'loadUserImg')
-  }
-
-  return R
+  const u = $.app.user
+  if (!u.studentid) return
+  const stu = await new Api('camp/student').get({q: {id: u.studentid}})
+  return stu.avatar
 }
 
-// async function initEcharts() {
-//   const u = $.app.user
-//   if (!u.studentid) return
+async function initEcharts() {
+  const u = $.app.user
+  if (!u.studentid) return
 
-//   /**
-//    * @type {Array<object>}
-//    */
-//   let data = []
-//   let r = await _api.get({q: {id: u.studentid}, field: '-sign'})
-//   let rs = store.get('coures')
-//   r.course.forEach(async (/** @type {any} */ r) => {
-//     // console.log(r.score);
-//     // console.log(
-//     //   await post('https://test.lianlian.pub/camp/getRank', {
-//     //     couresid: rs.couresId,
-//     //     challid: rs.challid,
-//     //     studentid: u.studentid,
-//     //     score: r.score,
-//     //   })
-//     // )
-//     data.push(computedSch(r.count, r.total, r.id))
-//   })
-//   let myChart = echarts.init(document.querySelector('.schedule'))
+  /**
+   * @type {Array<object>}
+   */
+  let data = []
+  let r = await _api.get({q: {id: u.studentid}})
+  let rs = store.get('coures')
+  r.course.forEach(async (/** @type {any} */ r) => {
+    // console.log(r.score);
+    // console.log(
+    //   await post('https://test.lianlian.pub/camp/getRank', {
+    //     couresid: rs.couresId,
+    //     challid: rs.challid,
+    //     studentid: u.studentid,
+    //     score: r.score,
+    //   })
+    // )
+    data.push(computedSch(r.count, r.total, r.id))
+  })
+  let myChart = echarts.init(document.querySelector('.schedule'))
 
-//   let option = {
-//     tooltip: {
-//       trigger: 'axis',
-//       axisPointer: {
-//         type: 'shadow',
-//       },
-//     },
-//     grid: {
-//       left: '3%',
-//       right: '4%',
-//       bottom: '3%',
-//       containLabel: true,
-//     },
-//     title: [
-//       {
-//         left: 'center',
-//         text: '课程完成进度表',
-//       },
-//     ],
-//     xAxis: [
-//       {
-//         type: 'category',
-//         data: data.map(function (item) {
-//           return item.name
-//         }),
-//         axisTick: {
-//           alignWithLabel: true,
-//         },
-//       },
-//     ],
-//     yAxis: [
-//       {
-//         type: 'value',
-//       },
-//     ],
-//     series: [
-//       {
-//         name: 'Direct',
-//         type: 'bar',
-//         barWidth: '60%',
-//         data: data.map(function (item) {
-//           return parseFloat(item.value) // 将百分比字符串转换为数值
-//         }),
-//         itemStyle: {
-//           normal: {
-//             label: {
-//               show: true, // 开启显示
-//               position: 'top', // 标签的位置,outer外面，inner里面，top上面
-//               textStyle: {
-//                 // 数值样式
-//                 color: '#5470C6',
-//                 fontSize: 14,
-//               },
-//               formatter: '{c}%', // 格式化显示的样式
-//             },
-//             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-//               {
-//                 offset: 0,
-//                 color: '#347CDD',
-//               },
-//               {
-//                 offset: 1,
-//                 color: '#56fb93',
-//               },
-//             ]),
-//           },
-//         },
-//       },
-//     ],
-//   }
+  let option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow',
+      },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true,
+    },
+    title: [
+      {
+        left: 'center',
+        text: '课程完成进度表',
+      },
+    ],
+    xAxis: [
+      {
+        type: 'category',
+        data: data.map(function (item) {
+          return item.name
+        }),
+        axisTick: {
+          alignWithLabel: true,
+        },
+      },
+    ],
+    yAxis: [
+      {
+        type: 'value',
+      },
+    ],
+    series: [
+      {
+        name: 'Direct',
+        type: 'bar',
+        barWidth: '60%',
+        data: data.map(function (item) {
+          return parseFloat(item.value) // 将百分比字符串转换为数值
+        }),
+        itemStyle: {
+          normal: {
+            label: {
+              show: true, // 开启显示
+              position: 'top', // 标签的位置,outer外面，inner里面，top上面
+              textStyle: {
+                // 数值样式
+                color: '#5470C6',
+                fontSize: 14,
+              },
+              formatter: '{c}%', // 格式化显示的样式
+            },
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              {
+                offset: 0,
+                color: '#347CDD',
+              },
+              {
+                offset: 1,
+                color: '#56fb93',
+              },
+            ]),
+          },
+        },
+      },
+    ],
+  }
 
-//   myChart.setOption(option)
-// }
+  myChart.setOption(option)
+}
 
 /**
  *
@@ -480,24 +436,21 @@ async function loadUserImg() {
  * @param {*} total
  * @param {*} id
  */
-// function computedSch(count, total, id) {
-//   let data
-//   switch (id) {
-//     case 5:
-//       data = {name: 'HTML', value: ((count / total) * 100).toFixed(0)}
-//       break
-//     case 1:
-//       data = {name: 'CSS', value: ((count / total) * 100).toFixed(0)}
-//       break
-//     case 2:
-//       data = {name: 'flexbox', value: ((count / total) * 100).toFixed(0)}
-//       break
-//     case 4:
-//       data = {name: 'jQuery', value: ((count / total) * 100).toFixed(0)}
-//       break
-//     case 4:
-//       data = {name: 'Javascript', value: ((count / total) * 100).toFixed(0)}
-//       break
-//   }
-//   return data
-// }
+function computedSch(count, total, id) {
+  let data
+  switch (id) {
+    case 5:
+      data = {name: 'HTML', value: ((count / total) * 100).toFixed(0)}
+      break
+    case 1:
+      data = {name: 'CSS', value: ((count / total) * 100).toFixed(0)}
+      break
+    case 2:
+      data = {name: 'flexbox', value: ((count / total) * 100).toFixed(0)}
+      break
+    case 4:
+      data = {name: 'Javascript', value: ((count / total) * 100).toFixed(0)}
+      break
+  }
+  return data
+}

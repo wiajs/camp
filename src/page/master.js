@@ -9,8 +9,8 @@ import {promisify, post} from '../util/tool'
 const _data = [
   {
     p: ['&#xe655;', '编程挑战'],
-    c: ['我的课程', '我的挑战'],
-    a: ['course/index', 'chall/exam'],
+    c: ['选择课程', '课程列表', '当前课程', '我的挑战'],
+    a: ['course/index', 'course/list', 'course/last', 'chall/exam'],
   },
   {
     p: ['&#xe669;', '通信'],
@@ -31,8 +31,8 @@ const _data = [
     p: ['&#xe608;', '我的'],
     // c: ['我的信息', '我的设置'],
     // a: ['mine/user', 'mine/index'],
-    c: ['我的信息'],
-    a: ['mine/user'],
+    c: ['我的信息', '签名'],
+    a: ['mine/user', 'mine/sign'],
   },
 ]
 
@@ -76,13 +76,14 @@ export default class Master extends Page {
   show(v, param) {
     super.show(v, param)
     $.assign(_from, param)
-    if (_from.path) $.go(_from.path, _from.param)
-    initRouter()
+    router()
   }
 
   back(v, param) {
     super.back(v, param)
     console.log(`${_name} back:`, {pg: v, param})
+    $.assign(_from, param)
+    router()
   }
 
   hide(v) {
@@ -101,8 +102,9 @@ function init() {
 
 function bind() {}
 
-function initRouter() {
+function router() {
   const u = $.app.user
   if (!u.studentid) $.go('mine/user')
+  else if (_from.path) $.go(_from.path, _from.param)
   else $.go('course/index')
 }

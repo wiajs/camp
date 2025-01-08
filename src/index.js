@@ -144,7 +144,6 @@ async function main(hash, param) {
     // sid 保存到去全局
     if (sid) $.app.sid = sid
     if (appid) $.app.id = appid
-
     // 用户身份已确认（微信图像和昵称）
     // 如需手机验证码确认，在需要时调用login登录页面！！！
     if (token) {

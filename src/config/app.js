@@ -3,7 +3,21 @@
  */
 import cfg from '../../wia.config'
 
-const {owner, name, ver, appid, sid, file, exclude, mode, dev: debug, local, load} = cfg
+const {
+  owner,
+  name,
+  ver,
+  appid,
+  sid,
+  file,
+  exclude,
+  mode,
+  dev: debug,
+  local,
+  load,
+  sinkHost,
+  sink,
+} = cfg
 
 const app = {
   owner,
@@ -21,6 +35,8 @@ const app = {
   login: true, // 是否登录，包括微信网页或小程序静默登录、密码登录、手机验证登录
   bindMobile: true, // 绑定手机，如微信自动登录，需手机验证绑定用户手机
 
+  sinkHost,
+  sink,
   host: 'https://wia.pub',
   cos: 'https://cos.wia.pub',
   // api: 'http://dev.wia.pub:11580',

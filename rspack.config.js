@@ -21,6 +21,7 @@ module.exports = {
   mode: 'development', // production development
   context: __dirname,
   entry: {
+    // enzyme: './src/enzyme.js',
     index: './src/entry.js',
     // index: './src/index.tsx',
   },
@@ -132,6 +133,6 @@ module.exports = {
     //   chunks: [], // 手动注入
     //   // inject: 'body',
     // }),
-    isDev ? new refreshPlugin() : null,
+    // isDev ? new refreshPlugin() : null,
   ].filter(Boolean),
 }

@@ -1,9 +1,9 @@
-/** @jsx-x jsx */
 /** @jsxImportSource @wiajs/core */
-import {Page, jsx} from '@wiajs/core'
+
+import {Page} from '@wiajs/core'
 import {log as Log} from '@wiajs/util'
 import Navbar from '../../part/navbar'
-import {post, promisify} from '../../util/tool'
+import * as store from '../../util/store'
 import Api from '../../util/api'
 
 /** @type {*} */
@@ -15,7 +15,7 @@ const {$} = window
 const def = {
   app: $.app,
   name: 'course',
-  title: '课程',
+  title: '课程大纲',
 }
 
 const log = Log({m: def.name}) // 创建模块日志实例
@@ -32,17 +32,14 @@ let _cs // 课程
  * @type {*}
  */
 let _api
-/**
- * @type {{data:Array<any>,limit:number,skip:number,total:number}} userCoures
- */
-let userCoures
+
 export default class Index extends Page {
   /** @type {OptType} opts */
   constructor(opts = {}) {
     /** {OptType} */
     const opt = {...def, ...opts}
     super(opt.app, opt.name, opt.title)
-    _api = new Api('camp/course')
+    _api = new Api('camp/quote')
   }
 
   /** @param {*} param */
@@ -60,7 +57,8 @@ export default class Index extends Page {
     super.ready(v, param)
     log({v, param, id: this.id}, 'ready')
     _ = v
-    bind()
+    init(this)
+    bind(this)
   }
 
   /**
@@ -73,11 +71,7 @@ export default class Index extends Page {
     log({v, param}, 'show')
     _ = v
     $.assign(_from, param)
-    init()
-    loadUserImg().then(res => {
-      _.class('userimg')[0].src = res
-    })
-    getCoures()
+    show()
   }
 
   /**
@@ -90,6 +84,7 @@ export default class Index extends Page {
     super.change(v, param, lastParam)
     log({v, param, lastParam}, 'change')
   }
+
   /**
    * 返回
    * @param {*} v
@@ -98,8 +93,7 @@ export default class Index extends Page {
   back(v, param) {
     super.back(v, param)
     log({v, param}, 'hide')
-    getCoures()
-    init()
+    show()
   }
 
   /** @param {*} v */
@@ -108,150 +102,48 @@ export default class Index extends Page {
   }
 }
 
-async function init() {
+/**
+ * 初始化
+ * @param {*} pg
+ */
+async function init(pg) {
   try {
-    _.course.html('')
-    const nav = new Navbar(this, {
+    const nav = new Navbar(pg, {
       el: _.class('navbar'),
       // active: 'btnHome',
     })
-
-    const u = $.app.user
-    if (!u.studentid) $.go('mine/user')
-    else {
-      const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-      if (stu?.course?.length) {
-        // _.class('coures').html().remove();
-        _.class('coures').prepend('<span class="course_title">课程</span>')
-        // eslint-disable-next-line no-restricted-syntax
-        for (const c of stu.course) {
-          const {id, count} = c
-
-          const r = await _api.get({q: {id}})
-          if (r) loadCourse(r, count)
-        }
-      }
-    }
   } catch (e) {
     log.err(e, 'init')
   }
 }
 
-function bind() {
+/**
+ * 事件绑定
+ * @param {*} pg
+ */
+function bind(pg) {
   try {
     // @ts-ignore
-    _.course.click(ev => {
-      let input = $(ev.target).closest('.accordion-list').siblings('.title').text()
-      let type = ''
-      let couresId
-      switch (input) {
-        case 'CSS基础':
-          couresId = 1
-          type = 'html'
-          break
-        case 'flexbox布局':
-          couresId = 2
-          type = 'html'
-          break
-        case 'HTML5基础':
-          couresId = 5
-          type = 'html'
-          break
-        case 'JavaScript':
-          couresId = 4
-          type = 'javascript'
-          break
-        case 'jQuery框架(DOM)':
-          couresId = 3
-          type = 'html'
-          break
-        default:
-          type = 'html'
-          break
-      }
-      const id = $(ev.target).upper('.lies').data('id')
-      localStorage.setItem(
-        'coures',
-        JSON.stringify({challid: id, type, couresTitle: input, couresId})
-      )
-      if (id) $.go('chall/exam', {challid: id})
+    _.btnMap.click(async ev => {
+      const cat = $(ev.target).upper('.link-btn').data('cat')
+      if (cat < 4 || cat == 16) {
+        store.set('courseCat', cat) // 本地保存当前课程类别
+        $.go('course/list', {cat})
+      } else alert('暂未上线，将于近期上线，请选择【1、2、3】，谢谢！')
     })
   } catch (e) {
     log.err(e, 'bind')
   }
 }
 
-/**
- * 加载课程明细
- * @param {*} r -  课程记录
- * @param {*} count - 完成数量
- */
-function loadCourse(r, count) {
-  const {challenge: cs, id} = r
-  if (!count) count = 0
-  // @ts-ignore
-  const detail = cs.map(c => {
-    let falg = userCoures.data.filter(r => (r.challid == c.id ? {id: r.challid} : false))
-    return (
-      <div class='list lies' data-id={c.id}>
-        <ul>
-          <li>
-            <div class='item-content'>
-              <div class='item-media'>
-                <label class='checkbox'>
-                  <div class='icon iconfont' style='color: #00ff00;'>
-                    {falg.length ? '&#xe664;' : ''}
-                  </div>
-                </label>
-              </div>
-              <div class='item-inner'>
-                <div class='item-title'>{c.title}</div>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
-    )
-  })
-  const el = (
-    <div class='container' data-id={id}>
-      <span class='title'>{r.title}</span>
-      <p>{r.describe}</p>
-      <div class='list list-strong list-dividers-ios inset-md accordion-list'>
-        <ul>
-          <li class='accordion-item'>
-            <a class='item-link item-content'>
-              <div class='item-inner'>
-                <div class='item-title'>课程明细</div>
-                <label class='item-checkbox item-checkbox-icon-start item-content'>
-                  <p class='ps'>
-                    {String(count)}/{cs.length}
-                  </p>
-                </label>
-              </div>
-            </a>
-            <div class='accordion-item-content'>{detail}</div>
-          </li>
-        </ul>
-      </div>
-    </div>
-  )
-
-  _.class('course').append(el)
-}
-
-async function getCoures() {
-  userCoures = await new Api('camp/exam').find({
-    limit: 150,
-    sort: '+addTime',
-    q: {studentid: $.app.user.studentid, passed: true},
-    field: 'challid',
-  })
-}
-
-async function loadUserImg() {
+async function show() {
   const u = $.app.user
-  if (!u.studentid) return
-  const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-  return stu.avatar
+  if (!u.studentid) $.go('mine/user')
+  const q = [{$match: {lang: 2}}, {$project: {quote: 1, author: 1, _id: 0}}, {$sample: {size: 1}}]
+  const rs = await _api.aggregate({q})
+  log({rs}, 'show')
+  if (rs?.data?.length) {
+    _.txQuote.html(rs.data[0].quote)
+    _.txAuthor.html(rs.data[0].author)
+  }
 }

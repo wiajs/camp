@@ -1,12 +1,18 @@
+// eslint-disable-next-line max-classes-per-file
 import {Page} from '@wiajs/core'
 import {assert, AssertionError} from 'chai' // v4.4.1， 5 只支持 esm ReferenceError
 import * as __helpers from '@freecodecamp/curriculum-helpers'
 import {log as Log} from '@wiajs/util'
+// import * as Enzyme from 'enzyme'
+// import Adapter from 'enzyme-adapter-react-16'
 import {delay, post} from '../../util/tool'
 import * as store from '../../util/store'
 import Navbar from '../../part/navbar'
 import Api from '../../util/api'
 import api from '../../api'
+import cfg from '../../config/app'
+
+// Enzyme.configure({adapter: new Adapter()})
 
 /** @type {*} */
 const {$} = window
@@ -27,8 +33,8 @@ const log = Log({m: def.name}) // 创建模块日志实例
 /** @type {*} */
 let _editor
 
-let startTime = new Date()
-let stopTime = new Date()
+let _startTime = new Date()
+let _stopTime = new Date()
 
 /** @type {*} */
 let _api
@@ -45,9 +51,10 @@ let _r
 let _ext = 'html'
 
 /**
- * @type {{type:string,couresTitle:string}} _store
+ * @type {*}
  */
-let _store
+let _course
+
 export default class Exam extends Page {
   /** @type {OptType} opts */
   constructor(opts = {}) {
@@ -87,9 +94,10 @@ export default class Exam extends Page {
     _ = v
     $.assign(_from, param)
     show(param)
-    _store = getLocal()
-    _.class('course').text(_store.couresTitle)
-    setCourseProgress()
+    _.class('course').text(_course.title)
+    // setProgress()
+    $('.page-master').hide()
+    $('.page-master-detail').addClass('full')
   }
 
   /**
@@ -113,12 +121,16 @@ export default class Exam extends Page {
     log({v, param}, 'back')
     _ = v
     back(param)
-    setCourseProgress()
+    // setProgress()
+    $('.page-master').hide()
+    $('.page-master-detail').addClass('full')
   }
 
   /** @param {*} v */
   hide(v) {
     log({v}, 'hide')
+    $('.page-master-detail').removeClass('full')
+    $('.page-master').show()
   }
 }
 
@@ -131,10 +143,23 @@ function init(pg) {
     el: _.class('navbar'),
     // active: 'btnHome',
   })
+
+  // 处理错误：ResizeObserver loop completed with undelivered notifications
+  // 组件重新绘制大小时dev环境出现报错提示，如在VUE3中使用ant-design-vue表格自适应窗口大小时webpack会报错。
+  // 本页报错，估计是编辑器与弹性盒子调整宽度时导致
+  // 常用解决方案有重写ResizeObserver或者时间间隔内限制执行方式，可以设置屏蔽方式跳过提示。
+
+  const _ResizeObserver = window.ResizeObserver
+  window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
+    constructor(callback) {
+      callback = debounce(callback, 200)
+      super(callback)
+    }
+  }
+
+  _course = store.get('course')
+
   loadEditor()
-  // _rs = JSON.parse(localStorage.getItem('coures'))
-  // loadChall(4, 1) // 82
-  // _.class('course_title').text(param.couresTitle)
 }
 
 /**
@@ -143,11 +168,16 @@ function init(pg) {
  */
 function bind(param) {
   // @ts-ignore
-  _.btnRun.click(ev => {
-    if (_ext === 'html') loadFrame()
+  _.btnRun.click(async ev => {
+    // if (_ext === 'wia') loadWia()
+
     const cnt = check(_r)
-    submit(_r, cnt)
-    setCourseProgress()
+    const rs = await submit(_r, cnt)
+    // 检测成功、提交成功，显示进度
+    if ((cnt === _r.tests.length && rs.code) === 200 && rs.data.passed) {
+      await setProgress(rs.data)
+      _.passed.show()
+    } else _startTime = new Date() // 重新计时
   })
 
   _.btnReset.click(() => reset(_r))
@@ -157,10 +187,32 @@ function bind(param) {
   _.btnNext.click(async () => {
     _.passed.hide()
     log({id: _r.id}, 'btnNext')
-    loadChall(_r.courseid, _r.step + 1)
+    loadChall(_r.courseid, _r.challengeOrder + 1)
   })
 
   _.txCode.on('editor:ready', () => {})
+  _.name('btnBack').click(() => {
+    // debugger
+    $.go('master', {path: 'course/last'})
+  })
+
+  window.addEventListener(
+    'message',
+    ev => {
+      const {data} = ev
+
+      // 通过origin对消息进行过滤，避免遭到XSS攻击
+      if (
+        // ev.origin === 'https://lianlian.pub' &&
+        data?.from === 'sink:play' &&
+        data?.act === 'ready'
+      ) {
+        // debugger
+        loadWia()
+      }
+    },
+    false
+  )
 }
 
 /**
@@ -183,58 +235,98 @@ function back(param) {
 /**
  * 加载挑战
  * @param {number=} courseid|challid - 课程id 或 挑战id
- * @param {number} [step = 0] 课程id 必须带 step
+ * @param {number} [challengeOrder = 0] 课程id 必须带 challengeOrder
  */
-async function loadChall(courseid, step = 0) {
+async function loadChall(courseid, challengeOrder = 0) {
   try {
     let r
     if (!courseid) {
       if (_r) r = _r
       else {
-        r = JSON.parse(store.get('chall'))
+        r = store.get('chall')
         if (r) _r = r
       }
     } else {
       let challid = 0
-      if (step === 0) challid = courseid
-      r = await _api.get({q: challid ? {id: challid} : {courseid, step}})
+      if (challengeOrder === 0) challid = courseid
+      r = await _api.get({
+        q: challid ? {id: challid} : {courseid, challengeOrder},
+        field: '-solutions',
+      })
+      if (r) _r = r
+      store.set('chall', r) // 本地保存当前挑战
     }
 
-    log({r}, 'loadChall')
+    // log({r}, 'loadChall')
 
-    if (!r || !r.tests.length) return
-
-    _r = r // 全局保存
-    store.set('chall', JSON.stringify(r)) // 本地保存
+    if (!r || !r.tests.length) {
+      $.go('course/index')
+      return
+    }
 
     _.title.html(r.title)
+    if (r.author) {
+      _.txAuthor.text(`作者：${r.author}`)
+      _.txAuthor.show()
+    } else _.txAuthor.hide()
+
     // 加载挑战说明
     _.desc.setView(r)
 
     // 加载测试说明
     // @ts-ignore
-    const ts = r.tests.map(t => ({text: t.text, icon: '&#xe6e7;', color: 'white'}))
+    const ts = r.tests.map(t => ({
+      text: t.text,
+      icon: '&#xe6e7;',
+      color: 'white',
+    }))
     _.prompt.setView(ts)
 
     const challF = r.challengeFiles[0]
-    log(r, challF, 'loadChall')
+    // log(r, challF, 'loadChall')
     const {name, ext} = challF
     _ext = ext // 全局保存
 
     const code = challF.contents
-    const lang = ext === 'js' ? 'javascript' : ext
+    const lang = ['js', 'jsx'].includes(ext) ? 'javascript' : ext
 
     await showCode(code, lang)
 
-    if (ext === 'html') {
+    if (['html', 'jsx', 'vue', 'wia'].includes(ext)) {
       loadFrame()
-      _.frUi.show()
-    } else _.frUi.hide()
+      showFrame()
+    } else hideFrame()
 
-    startTime = new Date()
+    _startTime = new Date()
   } catch (e) {
     log.err(e, 'loadChall')
   }
+}
+
+function showFrame() {
+  // $('.monaco-editor').css({width: '500px'})
+  if (_ext === 'wia') {
+    if (!_.frSink.dom.src) {
+      _.frSink.dom.src = cfg.sink
+      _.frSink.dom.onload = function () {
+        console.log('wia iframe loaded.')
+        // frSink.window.childConsole(data)
+        // sendMsg(data)
+      }
+    }
+
+    _.dvSink.show()
+    _.frUi.hide()
+  } else {
+    _.dvSink.hide()
+    _.frUi.show()
+  }
+}
+
+function hideFrame() {
+  // $('.monaco-editor').css({width: '700px'})
+  _.dvSink.hide()
+  _.frUi.hide()
 }
 
 /**
@@ -246,7 +338,11 @@ function reset(r) {
 
   try {
     // @ts-ignore
-    const ts = r.tests.map(t => ({text: t.text, icon: '&#xe6e7;', color: 'white'}))
+    const ts = r.tests.map(t => ({
+      text: t.text,
+      icon: '&#xe6e7;',
+      color: 'white',
+    }))
     _.prompt.setView(ts)
 
     const challF = r.challengeFiles[0]
@@ -254,10 +350,10 @@ function reset(r) {
 
     _editor.setValue(code)
 
-    if (_ext === 'html') {
+    if (['html', 'jsx', 'vue', 'wia'].includes(_ext)) {
       loadFrame()
-      _.frUi.show()
-    } else _.frUi.hide()
+      showFrame()
+    } else hideFrame()
   } catch (e) {
     log.err(e, 'resetChall')
   }
@@ -270,14 +366,14 @@ function reset(r) {
  */
 async function showCode(code, lang) {
   try {
-    if (!(await edited(5))) return
+    if (!(await edited(10))) return
 
     log({code, lang}, 'showCode')
 
     if (_editor) _editor.dispose()
     _editor = window.monaco.editor.create(_.txCode.dom, {
       value: code,
-      language: lang,
+      language: ['vue', 'wia'].includes(lang) ? 'html' : lang,
       theme: 'vs', // 可以设置编辑器主题vs-dark
       // 是否启用了代码自动补全
       autoClosingBrackets: 'always',
@@ -285,12 +381,17 @@ async function showCode(code, lang) {
       folding: true,
       // 是否启用了选中文本的高亮显示
       selectionHighlight: true,
-      automaticLayout: true,
+      tabSize: 2,
+      insertSpaces: true,
+      automaticLayout: true, // 自动调节
       wordWrap: 'on',
     })
 
+    // 编辑器与容器等宽
+    // $('.monaco-editor').css({width: '100%'})
+
     _editor.onDidChangeModelContent(e => {
-      if (_ext === 'html') loadFrame()
+      if (['html', 'jsx', 'vue', 'wia'].includes(_ext)) loadFrame()
     })
   } catch (e) {
     log.err(e, 'showCode')
@@ -310,24 +411,33 @@ async function showCode(code, lang) {
             "link" : "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.0/animate.css"
         } */
 function loadFrame() {
-  if (_ext !== 'html') return
+  try {
+    if (!['html', 'jsx', 'vue', 'wia'].includes(_ext)) return
 
-  const {required: req} = _r
-  // @ts-ignore
-  let link = req?.filter(f => f.link)
-  // @ts-ignore
-  if (link?.length) link = link.map(lk => `<link rel="stylesheet" href="${lk.link}" />`)
-  // @ts-ignore
-  let src = req?.filter(f => f.src && !f.src.test('jquery')) ?? []
-  // "https://code.jquery.com/jquery-3.6.0.min.js"
-  src.push({src: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'})
+    if (_ext === 'jsx') loadJsx()
+    else if (_ext === 'vue') loadVue()
+    else if (_ext === 'wia') loadWia()
+    else {
+      const {required: req} = _r
 
-  // @ts-ignore
-  if (src?.length) src = src.map(sc => `<script src="${sc.src}"></script>`)
+      // @ts-ignore
+      let link = req?.filter(f => f.link)
+      // @ts-ignore
+      if (link?.length) link = link.map(lk => `<link rel="stylesheet" href="${lk.link}" />`)
+      // @ts-ignore
+      let src = req?.filter(f => f.src && !/jquery/gi.test(f.src)) ?? []
+      // "https://code.jquery.com/jquery-3.6.0.min.js"
+      src.push({
+        // src: 'https://cdn.staticfile.net/jquery/3.7.1/jquery.min.js',
+        src: 'https://lib.baomitu.com/jquery/3.6.4/jquery.min.js',
+      })
 
-  const code = _editor.getValue()
+      // @ts-ignore
+      if (src?.length) src = src.map(sc => `<script src="${sc.src}"></script>`)
 
-  _.frUi.dom.srcdoc = `
+      const code = _editor.getValue()
+
+      const html = `
 <!doctype html>
 <html>
   <head>
@@ -370,6 +480,241 @@ function loadFrame() {
   </body>
 </html>
 `
+      _.frUi.dom.srcdoc = html
+    }
+  } catch (e) {
+    log.err(e, 'loadFram')
+  }
+}
+
+function loadJsx() {
+  try {
+    const {required: req, template, challengeFiles} = _r
+    const {head, tail, runType} = challengeFiles[0]
+
+    // @ts-ignore
+    let link = req?.filter(f => f.link)
+    // @ts-ignore
+    if (link?.length) link = link.map(lk => `<link rel="stylesheet" href="${lk.link}" />`)
+    // @ts-ignore
+    let src = req?.filter(f => f.src) ?? []
+    // let src = req?.filter(f => f.src && !/jquery/gi.test(f.src)) ?? []
+    // "https://code.jquery.com/jquery-3.6.0.min.js"
+    // src.push({src: 'https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js'})
+    src.push({
+      src: 'https://lib.baomitu.com/babel-standalone/7.25.6/babel.min.js',
+    })
+    src.push({src: 'https://camp.wia.pub/wia/enzyme.js'})
+
+    // @ts-ignore
+    if (src?.length) src = src.map(sc => `<script src="${sc.src}"></script>`)
+
+    const code = _editor.getValue()
+
+    const source = `
+    ${src.length ? src.join('\n') : ''} 
+    <script>    
+      let code = \`${head ? ';' + head + '\n' : ''}\` + \`${code}\n\` + \`${tail ? ';' + tail + '\n' : ''}; \` 
+      const trans = window.Babel.transform(code, { presets: ['es2015', 'react'] }); // 编译 jsx字符串代码为 js字符串代码    
+      if (trans) {
+        code = trans.code; // + ';return JSX;'
+        // let functionReactJsx = new Function(code); // 定义代码执行函数
+        // functionReactJsx(); // 执行代码
+        eval(code)
+      }
+      
+      function run(code, test, x) {        
+        let R = { pass: false }
+
+        const {assert, AssertionError, ReferenceError, __helpers} = x
+        try { 
+          eval(trans.code + ';' + test)
+          // eval(test)
+          R = { pass: true }
+        } catch (err) {
+          if (!(err instanceof AssertionError)) console.error(err)
+          R = {
+            pass: false,
+            err: {
+              message: err.message || '',
+              stack: err.stack,
+              expected: err.expected || '',
+              actual: err.actual || ''
+            }
+          }
+        }
+        return R
+      }
+    </script>
+    `
+    const body = template ? eval(`\`${template}\``) : `<body>${source}</body>`
+    const html = `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    ${link.length ? link.join('\n') : ''}
+  </head>
+  ${body}
+</html>
+`
+    _.frUi.dom.srcdoc = html
+  } catch (e) {
+    log.err(e, 'loadJsx')
+  }
+}
+
+function loadVue() {
+  try {
+    const {required: req, template, challengeFiles} = _r
+    const {head, tail} = challengeFiles[0]
+
+    // @ts-ignore
+    let link = req?.filter(f => f.link)
+    // @ts-ignore
+    if (link?.length) link = link.map(lk => `<link rel="stylesheet" href="${lk.link}" />`)
+    // @ts-ignore
+    let src = req?.filter(f => f.src) ?? []
+
+    // @ts-ignore
+    if (src?.length) src = src.map(sc => `<script src="${sc.src}"></script>`)
+
+    let code = _editor.getValue()
+    let style = ''
+    let tp = ''
+    let js = ''
+    let mt = code.match(/<template>([\s\S]+)<\/template>/)
+    if (mt) [, tp] = mt
+    mt = code.match(/(<style>[\s\S]+<\/style>)/)
+    if (mt) [, style] = mt
+    mt = code.match(/<script>([\s\S]+)<\/script>/)
+    if (mt) [, js] = mt
+
+    if (js) {
+      if (tp) code = js.replace(/export\s+default\s*\{/, `const Comp = {template: \`${tp}\`,`)
+      else code = js.replace(/export\s+default\s*/, `const Comp = `)
+    } else if (tp) code = `const Comp = {template: \`${tp}\`}`
+    if (!code) return
+
+    const source = `
+    ${src.length ? src.join('\n') : ''} \n 
+    <script>    
+      const pgCode = \`${head ? ';' + head + '\n' : ''}\` + \`${code.replaceAll('`', '\\`')}\n\` + \`${tail ? ';' + tail + '\n' : ''}; \` 
+      const runCode = \`${code.replaceAll('`', '\\`')}\n\` 
+
+      try { 
+        eval(pgCode)
+      } catch(err) {
+        console.error(err) 
+      }
+        
+      function run(code, test, x) {        
+        let R = { pass: false }
+
+        const {assert, AssertionError, ReferenceError, __helpers} = x
+        try { 
+          // debugger
+          eval(runCode + test)
+          R = { pass: true }
+        } catch (err) {
+          if (!(err instanceof AssertionError)) console.error(err)
+          R = {
+            pass: false,
+            err: {
+              message: err.message || '',
+              stack: err.stack,
+              expected: err.expected || '',
+              actual: err.actual || ''
+            }
+          }
+        }
+        return R
+      }
+    </script>
+    `
+    const body = template ? eval(`\`${template}\``) : `<body>${source}</body>`
+    const html = `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    ${link.length ? link.join('\n') : ''}
+    \n${style} 
+  </head>
+  ${body}
+</html>
+`
+    _.frUi.dom.srcdoc = html
+  } catch (e) {
+    log.err(e, 'loadVue')
+  }
+}
+
+/**
+ * 向 iframe 发送消息
+ * @param {*} data
+ */
+function sendMsg(data) {
+  _.frSink.dom.contentWindow.postMessage(data, cfg.sinkHost)
+}
+
+function loadWia() {
+  try {
+    const {title, challengeFiles} = _r
+    const {head, tail} = challengeFiles[0]
+
+    let code = _editor.getValue()
+    const data = {from: 'camp', act: 'show', path: 'play', title, code}
+    sendMsg(data)
+  } catch (e) {
+    log.err(e, 'loadWia')
+  }
+}
+
+function testWia() {
+  try {
+    const {title, challengeFiles} = _r
+    const {head, tail} = challengeFiles[0]
+
+    let code = _editor.getValue()
+    if (!code) return
+
+    const data = {from: 'camp', act: 'test', path: 'play', title, code}
+    sendMsg(data)
+
+    let js = ''
+    let mt = code.match(/<script>([\s\S]+)<\/script>/)
+    if (mt) [, js] = mt
+
+    const source = `
+    <script>    
+      function run(code, test, x) {        
+        let R = { pass: false }
+
+        const {assert, AssertionError, ReferenceError, __helpers} = x
+        try { 
+          // debugger
+          eval(runCode + test)
+          R = { pass: true }
+        } catch (err) {
+          if (!(err instanceof AssertionError)) console.error(err)
+          R = {
+            pass: false,
+            err: {
+              message: err.message || '',
+              stack: err.stack,
+              expected: err.expected || '',
+              actual: err.actual || ''
+            }
+          }
+        }
+        return R
+      }
+    </script>
+    `
+  } catch (e) {
+    log.err(e, 'loadWia')
+  }
 }
 
 /**
@@ -397,7 +742,10 @@ function check(rs) {
       let flag = true
       let rt = {pass: false}
       try {
-        if (_ext === 'html') rt = _.frUi.dom.contentWindow.run(code, t.testString, x, head, tail)
+        if (['html', 'jsx', 'vue'].includes(_ext))
+          rt = _.frUi.dom.contentWindow.run(code, t.testString, x, head, tail)
+        else if (_ext === 'wia')
+          rt = _.frSink.dom.contentWindow.run(code, t.testString, x, head, tail)
         else rt = run(code, t.testString, x, head, tail)
 
         log({rt}, 'check')
@@ -409,7 +757,7 @@ function check(rs) {
         // 样式函数
         // assertExcption
       } catch (err) {
-        console.log(err)
+        log.err(err, 'check')
         flag = false
         passed = false
       }
@@ -420,8 +768,6 @@ function check(rs) {
     })
 
     _.prompt.setView(ts)
-
-    if (cnt === rs.tests.length) _.passed.show()
 
     R = cnt
   } catch (e) {
@@ -475,7 +821,7 @@ function run(code, test, x, head = '', tail = '') {
     return R
   `
 
-  log({body}, 'run')
+  // log({body}, 'run')
 
   // eslint-disable-next-line no-new-func
   return Function('x', body)(x)
@@ -493,25 +839,29 @@ function run(code, test, x, head = '', tail = '') {
  * @param {number} count - 正确数
  */
 async function submit(r, count = 0) {
+  let R
   try {
     if (!r || !r.id || !$.app.user) return
 
-    stopTime = new Date()
+    _stopTime = new Date()
 
     const {id: challid, courseid} = r
     const d = {
       courseid,
       challid,
       code: _editor.getValue(),
-      start: $.date('yyyy-MM-dd hh:mm:ss', startTime),
-      stop: $.date('yyyy-MM-dd hh:mm:ss', stopTime),
+      start: $.date('yyyy-MM-dd hh:mm:ss', _startTime),
+      stop: $.date('yyyy-MM-dd hh:mm:ss', _stopTime),
       count,
     }
     const rs = await post(`${api.camp.addExam}`, d)
+    if (rs) R = rs
     log({d, rs}, 'submit')
   } catch (e) {
     log.err(e, 'submit')
   }
+
+  return R
 }
 
 /**
@@ -538,40 +888,35 @@ async function edited(tm) {
   return R
 }
 
-async function setCourseProgress() {
-  const u = $.app.user
-  if (!u.studentid) $.go('mine/user')
-  let {couresId} = getLocal()
-  let progress = '0'
-  const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-  if (stu?.course?.length) {
-    for (const c of stu.course) {
-      c.count && c.id == parseInt(couresId) ? (progress = computedSch(c.count, c.total)) : progress
-    }
+/**
+ * 完成比例、得分
+ * @param {*} rs 提交返回数据
+ */
+async function setProgress(rs) {
+  if (!rs || !rs.course) return
+
+  try {
+    const {count, total} = rs.course
+    const progress = ((count / total) * 100).toFixed(0)
     $.app.progressbar.set(_.class('progressbar'), progress, 0.5)
-    _.class('center_text').text(`完成${progress}%`)
+    _.class('center_text').text(
+      `完成：${progress}%，本关得分：${rs.score}，课程平均得分：${rs.course.score}`
+    )
+  } catch (e) {
+    log.err(e, 'setProgress')
   }
 }
 
 /**
- *
- * @param {*} count
- * @param {*} total
- */
-function computedSch(count, total) {
-  return ((count / total) * 100).toFixed(0)
-}
-
-/**
- * 向页面添加样式
+ * 向页面添加编辑器
  */
 function loadEditor() {
   if (_editor) return
 
   const sc1 = document.createElement('script') // 创建一个script标签
   sc1.type = 'text/javascript'
-  // sc1.src = 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js'
-  sc1.src = 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/vs/loader.min.js'
+  sc1.src = 'https://lib.baomitu.com/monaco-editor/0.51.0/min/vs/loader.min.js'
+
   $('body').append(sc1)
 
   // 在页面加载完成后初始化 Monaco Editor
@@ -583,7 +928,7 @@ function loadEditor() {
       // 指定Monaco Editor的路径
       require.config({
         paths: {
-          vs: 'https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/vs/',
+          vs: 'https://lib.baomitu.com/monaco-editor/0.51.0/min/vs/',
         },
       })
 
@@ -593,8 +938,8 @@ function loadEditor() {
         getWorkerUrl: function (workerId, label) {
           const r = encodeURIComponent(
             'self.MonacoEnvironment = {' +
-              'baseUrl: "https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/"};' +
-              'importScripts("https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.49.0/min/vs/base/worker/workerMain.min.js");'
+              'baseUrl: "https://lib.baomitu.com/monaco-editor/0.51.0/min/"};' +
+              'importScripts("https://lib.baomitu.com/monaco-editor/0.51.0/min/vs/base/worker/workerMain.js");'
           )
           return 'data:text/javascript;charset=utf-8,' + r
         },
@@ -614,6 +959,15 @@ function loadEditor() {
   $('body').append(sc2)
 }
 
-function getLocal() {
-  return JSON.parse(localStorage.getItem('coures'))
+function debounce(fn, delay) {
+  /** @type {*} */
+  let timer
+  return (...args) => {
+    if (timer) {
+      clearTimeout(timer)
+    }
+    timer = setTimeout(() => {
+      fn(...args)
+    }, delay)
+  }
 }

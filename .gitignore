@@ -2,9 +2,8 @@ node_modules
 dist
 wiafile.yml
 /src/pages.js
-
-dist-ssr
-*.local
+/src/lib
+/src/ui
 
 # zip
 *.zip

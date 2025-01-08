@@ -1,8 +1,11 @@
 /**
  * Server 标准增、删、改、查接口
  */
-import {post} from './tool';
-import cfg from '../config/app';
+import {log as Log} from '@wiajs/util'
+import {post} from './tool'
+import cfg from '../config/app'
+
+const log = Log({m: 'util/store'})
 
 export default class Api {
   /**
@@ -10,8 +13,8 @@ export default class Api {
    * @param {string} name
    */
   constructor(name) {
-    this.name = name;
-    this.url = `${cfg.api}/${name}`;
+    this.name = name
+    this.url = `${cfg.api}/${name}`
   }
 
   /**
@@ -20,15 +23,15 @@ export default class Api {
    * @returns
    */
   async add(r) {
-    let R;
+    let R
     try {
-      const rs = await post(`${this.url}/add`, r);
-      console.log(`add ${this.name} rs:%o`, rs);
-      if (rs && rs.code === 200) R = rs.data;
+      const rs = await post(`${this.url}/add`, r)
+      console.log(`add ${this.name} rs:%o`, rs)
+      if (rs && rs.code === 200) R = rs.data
     } catch (e) {
-      console.log(`add exp:${e.message}`);
+      console.log(`add exp:${e.message}`)
     }
-    return R;
+    return R
   }
 
   /**
@@ -38,17 +41,17 @@ export default class Api {
    * @returns
    */
   async up(q, r) {
-    let R = null;
+    let R = null
 
     try {
-      const rs = await post(`${this.url}/up`, {q, r});
-      console.log(`up ${this.name}`, {rs});
-      if (rs && rs.code === 200) R = rs.data;
+      const rs = await post(`${this.url}/up`, {q, r})
+      console.log(`up ${this.name}`, {rs})
+      if (rs && rs.code === 200) R = rs.data
     } catch (e) {
-      console.error(`up exp:${e.message}`);
+      console.error(`up exp:${e.message}`)
     }
 
-    return R;
+    return R
   }
 
   /**
@@ -57,17 +60,17 @@ export default class Api {
    * @returns
    */
   async get(q) {
-    let R = null;
+    let R = null
 
     try {
-      const rs = await post(`${this.url}/get`, q);
-      console.log(`get ${this.name}`, {rs});
-      if (rs && rs.code === 200) R = rs.data;
+      const rs = await post(`${this.url}/get`, q)
+      // console.log(`get ${this.name}`, {rs})
+      if (rs && rs.code === 200) R = rs.data
     } catch (e) {
-      console.error(`get exp:${e.message}`);
+      console.error(`get exp:${e.message}`)
     }
 
-    return R;
+    return R
   }
 
   /**
@@ -76,18 +79,18 @@ export default class Api {
    * @returns
    */
   async count(q) {
-    let R = null;
+    let R = null
 
     try {
-      const rs = await post(`${this.url}/count`, q);
+      const rs = await post(`${this.url}/count`, q)
 
-      console.log(`count ${this.name}`, {rs});
-      if (rs && rs.code === 200) R = rs.data.count;
+      console.log(`count ${this.name}`, {rs})
+      if (rs && rs.code === 200) R = rs.data.count
     } catch (e) {
-      console.error(`count exp:${e.message}`);
+      console.error(`count exp:${e.message}`)
     }
 
-    return R;
+    return R
   }
 
   /**
@@ -96,18 +99,38 @@ export default class Api {
    * @returns
    */
   async find(q) {
-    let R = null;
+    let R = null
 
-    console.log('find...', {q});
+    log({q}, 'find...')
     try {
-      const rs = await post(`${this.url}/find`, q);
-      console.log(`find ${this.name}`, {rs});
-      if (rs && rs.code === 200) R = rs.data;
-    } catch (ex) {
-      console.error(`find exp:${ex.message}`);
+      const rs = await post(`${this.url}/find`, q)
+      log({rs}, `find ${this.name}`)
+      if (rs && rs.code === 200) R = rs.data
+    } catch (e) {
+      log.err(e, 'find')
     }
 
-    return R;
+    return R
+  }
+
+  /**
+   * 聚合查询
+   * @param {*} q 查询条件
+   * @returns
+   */
+  async aggregate(q) {
+    let R = null
+
+    log({q}, 'aggregate')
+    try {
+      const rs = await post(`${this.url}/aggregate`, q)
+      log({rs}, `aggregate ${this.name}`)
+      if (rs && rs.code === 200) R = rs.data
+    } catch (e) {
+      log.err(e, 'aggregate')
+    }
+
+    return R
   }
 
   /**
@@ -116,17 +139,17 @@ export default class Api {
    * @returns
    */
   async remove(q) {
-    let R = null;
+    let R = null
 
-    console.log('remove...', {q});
+    console.log('remove...', {q})
     try {
-      const rs = await post(`${this.url}/remove`, q);
-      console.log(`remove ${this.name}`, {rs});
-      if (rs && rs.code === 200) R = rs.data;
+      const rs = await post(`${this.url}/remove`, q)
+      console.log(`remove ${this.name}`, {rs})
+      if (rs && rs.code === 200) R = rs.data
     } catch (ex) {
-      console.error(`remove exp:${ex.message}`);
+      console.error(`remove exp:${ex.message}`)
     }
 
-    return R;
+    return R
   }
 }

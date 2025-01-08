@@ -2,13 +2,18 @@
  * 应用左边菜单
  */
 import {Event} from '@wiajs/core'
+import {log as Log} from '@wiajs/util'
 import Api from '../util/api'
+import * as store from '../util/store'
 
 const _html = require('./navbar.html').default
 
 const def = {
   active: {p: '首页'},
+  name: 'navbar',
 }
+
+const log = Log({m: def.name}) // 创建模块日志实例
 
 export default class Navbar extends Event {
   /**
@@ -43,6 +48,7 @@ export default class Navbar extends Event {
       this.opt.el.class('userimg')[0].src = res
     })
   }
+
   /**
    * 绑定点击事件
    */
@@ -59,27 +65,32 @@ export default class Navbar extends Event {
 
     n.name('btnLogin').click(ev => {
       // ???
-      // localStorage.removeItem('coures')
-      // localStorage.removeItem('nuoya/camp/token')
-      // localStorage.removeItem('nuoya/camp/chall')
-      // localStorage.removeItem('nuoya/camp/mobile')
+      // store.remove('coures')
+      // store.remove('token')
+      // store.remove('chall')
+      // store.remove('mobile')
       $.go('login', {relogin: true})
     })
 
     n.name('fullScreen').click(ev => {
-      let falg = true
-      if (!document.fullscreenElement && falg === true) {
-        $('#wia-app').get(0).requestFullscreen()
-        n.name('fullScreen').html('&#xeb08;')
-        falg = false
+      let full = false
+      if (document.fullscreenElement) {
+        document
+          .exitFullscreen()
+          .then(() => {
+            n.name('fullScreen').html('&#xe610;')
+            $('.page-master-detail').removeClass('full')
+            $('.page-master').show()
+          })
+          .catch(err => console.error(err))
       } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen()
-          n.name('fullScreen').html('&#xe610;')
-          falg = true
-        }
+        document.documentElement.requestFullscreen()
+        n.name('fullScreen').html('&#xeb08;')
+        $('.page-master').hide()
+        $('.page-master-detail').addClass('full')
       }
     })
+
     // 捕获页面事件
     // this.page.on('show', () => {
     //   this.opt.el.name(this.opt.active).addClass('tab-link-active', true);
@@ -91,16 +102,27 @@ export default class Navbar extends Event {
   }
 }
 
+/**
+ * 加载用户头像
+ * @returns
+ */
 async function loadUserImg() {
   let R
   try {
-    const u = $.app.user
-    if (!u.studentid) $.go('mine/user')
+    const avatar = store.get('student.avatar')
+    if (avatar) R = avatar
     else {
-      const stu = await new Api('camp/student').get({q: {id: u.studentid}})
-      R = stu.avatar ?? 'https://camp.wia.pub/img/avator.png'
+      const u = $.app.user
+      if (u.studentid) {
+        const stu = await new Api('camp/student').get({q: {id: u.studentid}, field: 'avatar'})
+        await store.set('student.avatar', stu.avatar)
+        R = stu.avatar
+      }
     }
-  } catch (e) {}
+    R = R ?? 'https://camp.wia.pub/img/avator.png'
+  } catch (e) {
+    log.err(e, 'loadUserImg')
+  }
 
   return R
 }

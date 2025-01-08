@@ -4,7 +4,6 @@
  * Created by way on 2019/3/12.
  */
 const gulp = require('gulp')
-const open = require('opn') // open esm
 const connect = require('gulp-connect')
 const exec = require('exec-sh')
 const _ = require('lodash')
@@ -198,7 +197,10 @@ async function swcjs(cb) {
 async function serve(cb) {
   // swc
   // exec('vite')
-  exec('cross-env NODE_ENV=development rspack serve')
+  // exec('cross-env NODE_ENV=development rspack serve')
+  // exec('cross-env NODE_ENV=development rsbuild dev')
+  // rspack serve 特别卡，rsbuild dev 不支持动态加载
+  exec(`serve ${_dst} -p ${wiacfg.dev.port}`)
 
   if (cb) cb()
 }
@@ -241,7 +243,7 @@ async function buildjs(cb) {
     },
   })
 
-  console.log('webpack config:', cfg)
+  console.log('rspack config:', cfg)
 
   function rep(err, stats) {
     if (err) {
@@ -383,8 +385,8 @@ if (isDev)
     clean,
     pages,
     // swcjs,
-    // gulp.parallel(html, f7, less, buildjs)
-    gulp.parallel(html, f7, less),
+    // gulp.parallel(html, f7, less),
+    gulp.parallel(html, f7, less, buildjs),
     serve,
     // server, // 使用 live server 需屏蔽
     gulp.parallel(() => {
