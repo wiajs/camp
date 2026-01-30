@@ -23,6 +23,7 @@ function sha1(tx) {
 
 /**
  * 通过手机获得动态密码登录，获得身份token
+ * @param {string} mobile
  */
 async function getCode(mobile) {
   let R = ''
@@ -31,7 +32,7 @@ async function getCode(mobile) {
 
   try {
     if (/^1\d{10}$/.test(mobile)) {
-      store.set('mobile', mobile)
+      store.set('mobile', mobile, 60, true)
       const rs = await $.get(`${api.getCode}`, `mobile=${mobile}`)
       if (rs) {
         log({mobile, rs}, 'getCode')
@@ -70,7 +71,7 @@ async function login(sid, mobile, code) {
       log({token: cfg.token, r}, 'login')
       if (r.code === 200) {
         await logout() // 注销旧的token
-        if (!u) store.set(cfg.token, r.data.token)
+        if (!u) store.set(cfg.token, r.data.token, 525_600, true)
         R = r.data.token
       } else if (r.code === 4039) msg = '错误次数太多，请重新验证！'
       else msg = '验证码不正确，请重新输入！'
@@ -166,7 +167,7 @@ async function logout() {
     if (r) {
       log({token: cfg.token, r}, 'logout')
       if (r.code === 200) {
-        store.set(cfg.token, '')
+        store.set(cfg.token, '', 525_600, true)
         msg = '注销登录成功！'
         R = true
       }
@@ -238,8 +239,14 @@ async function getUser() {
 async function getToken(sid, code) {
   let R = ''
   try {
-    // 本地存储中获取token
-    let token = store.get(cfg.token)
+    // 本地存储中获取 token，wia 应用全局共享 token，通过后台权限控制用户访问
+    let token = store.get(cfg.token, true)
+    if (!token) {
+      // 已通过camp登录的，保持登录
+      token = store.get(`nuoya/camp/${cfg.token}`, true)
+      if (token) store.set(cfg.token, token, 525_600, true)
+    }
+
     log({key: cfg.token, token}, 'getToken')
 
     if (token) {
@@ -253,7 +260,7 @@ async function getToken(sid, code) {
         R = token
         log.error('offline!')
       } else {
-        store.remove(cfg.token)
+        store.remove(cfg.token, true)
         log.error('token invalid, getToken again!')
       }
     }
@@ -269,13 +276,13 @@ async function getToken(sid, code) {
         // console.log('getToken', {rs});
         if (rs.code === 200 && rs.data?.token) {
           token = rs.data.token
-          store.set(cfg.token, token)
+          store.set(cfg.token, token, 525_600, true)
           const u = await getUser()
           if (u) {
             $.app.user = u
             R = token
           } else {
-            store.remove(cfg.token)
+            store.remove(cfg.token, true)
             log.error({rs}, 'getUser fail, remove token!')
           }
         } else log.error({rs}, 'getToken fail!')

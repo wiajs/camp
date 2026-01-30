@@ -1,9 +1,13 @@
-const path = require('path')
-const rspack = require('@rspack/core')
-const refreshPlugin = require('@rspack/plugin-react-refresh')
-const {getJsOpt, getTsOpt} = require('./swc.config')
-const pkg = require('./package.json')
-const cfg = require('./wia.config')
+import path from 'node:path'
+import {fileURLToPath} from 'node:url'
+import rspack from '@rspack/core'
+import refreshPlugin from '@rspack/plugin-react-refresh'
+import {getJsOpt, getTsOpt} from './swc.config.js'
+import cfg from './wia.config.js'
+import pkg from './package.json' with {type: 'json'} // asset 报错
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename) // 不带 /
 
 const env = process.env.NODE_ENV || 'development'
 const isDev = env === 'development'
@@ -17,29 +21,33 @@ const tsOpt = getTsOpt(isDev)
 /**
  * @type {import('@rspack/cli').Configuration}
  */
-module.exports = {
+export default {
   mode: 'development', // production development
   context: __dirname,
   entry: {
-    // enzyme: './src/enzyme.js',
     index: './src/entry.js',
+    // enzyme: './src/enzyme.js',
     // index: './src/index.tsx',
   },
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, './dist'),
     publicPath: 'https://cos.wia.pub',
+    // chunkLoadingGlobal: '__webpack_require__', // 指定保留全局变量名
+    // globalObject: 'this', // 确保全局变量一致
   },
   devServer: {
     open: false, // 自动打开浏览器
     // static: path.resolve(__dirname, './dist'),
     static: './dist',
-    port: cfg.dev.port,
+    port: cfg.local.port,
     server: 'http', // 'http' | 'https' | 'spdy'
   },
   optimization: {
     usedExports: false, // 关闭es6摇树 tree-shaking，
+    chunkIds: 'named',
     moduleIds: 'named', // 保留名称，named production时需要 deterministic size natural
+    // mangleExports: false, // 禁用导出压缩
     // sideEffects: true, // 检测 npm 包的 sideEffects 设置
   },
   watch: true, // gulp 不需要，单独运行时用，监控js 文件变化，变化后自动再次触发编译，以增量方式生成，速度快
@@ -55,7 +63,19 @@ module.exports = {
     // (does not apply to resolving to loaders)
     modules: ['node_modules', path.resolve(__dirname, '.')],
     // directories where to look for modules
-    extensions: ['...', '.js', '.ts', '.cjs', '.mjs', '.tsx', '.jsx', '.json'],
+    extensions: [
+      '...',
+      '.js',
+      '.ts',
+      '.cjs',
+      '.mjs',
+      '.tsx',
+      '.jsx',
+      '.json',
+      '.css',
+      '.svg',
+      '.wasm',
+    ],
   },
   module: {
     rules: [
@@ -70,7 +90,7 @@ module.exports = {
         },
         use: [
           {
-            loader: 'builtin:swc-loader',
+            loader: 'builtin:swc-loader', // rspack 内置 swc，支持 env，标准swc不支持env
             options: jsOpt,
           },
         ],
@@ -80,18 +100,61 @@ module.exports = {
         use: 'raw-loader',
       },
       {
-        test: /\.(less|css)$/i,
+        test: /\.css$/, // 匹配 .css 文件
         use: [
-          'style-loader',
+          'style-loader', // 将 CSS 插入到 <style> 标签
           {
-            loader: 'css-loader',
+            loader: 'css-loader', // 解析 CSS 文件
             options: {
-              modules: true,
+              importLoaders: 1, // 确保 @import 的文件也走 css-loader
+              // modules: true, // CSS 类名会被编译为一个唯一的哈希值，从而将样式局部化
+              modules: {
+                localIdentName: '[local]_[hash:base64:3]', // 默认 16位 hash
+              },
             },
           },
-          'less-loader',
         ],
       },
+      {
+        test: /\.less$/, // 匹配 .less 文件
+        use: [
+          'style-loader', // 将解析后的 CSS 插入到 <style> 标签
+          {
+            loader: 'css-loader', // 解析 .less 中的 CSS
+            options: {
+              importLoaders: 1, // 确保 @import 的文件也走 css-loader
+              // modules: true, // CSS 类名会被编译为一个唯一的哈希值，从而将样式局部化
+              modules: {
+                localIdentName: '[local]_[hash:base64:3]', // 默认 16位 hash
+              },
+            },
+          },
+          {
+            loader: 'less-loader', // 将 LESS 编译为 CSS
+            options: {
+              lessOptions: {
+                strictMath: true, // 启用严格的数学运算
+              },
+            },
+          },
+        ],
+      },
+      // {
+      //   test: /\.(less|css)$/i,
+      //   use: [
+      //     'style-loader',
+      //     {
+      //       loader: 'css-loader',
+      //       options: {
+      //         // modules: true,
+      //         modules: {
+      //           localIdentName: '[local]_[hash:base64:3]', // 默认 16位 hash
+      //         },
+      //       },
+      //     },
+      //     'less-loader',
+      //   ],
+      // },
       // {
       //   test: /\.less$/,
       //   use: [

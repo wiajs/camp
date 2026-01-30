@@ -7,7 +7,7 @@ const getOpt = (dev = false) => {
   const opt = {
     jsc: {
       parser: {
-        dynamicImport: false,
+        dynamicImport: false, //  import pkg from './package.json' with {type: 'json'}
         privateMethod: true,
         functionBind: false,
         exportDefaultFrom: false,
@@ -77,14 +77,14 @@ function getJsOpt(dev = false) {
     jsc: {
       ...opt.jsc,
       parser: {
+        //...opt.jsc.parser,
         syntax: 'ecmascript',
         jsx: true,
-        // ...opt.jsc.parser,
       },
     },
   }
 
-  // console.log(R, 'getJsOpt')
+  console.log(R, 'getJsOpt')
 
   return R
 }
@@ -112,7 +112,4 @@ const getTsOpt = (dev = false) => {
   return R
 }
 
-module.exports = {
-  getTsOpt,
-  getJsOpt,
-}
+export {getTsOpt, getJsOpt}

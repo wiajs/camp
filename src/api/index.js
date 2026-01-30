@@ -129,10 +129,12 @@ Object.keys(api).forEach(k => {
   if ($.isObject(api[k])) {
     const o = api[k]
     Object.keys(o).forEach(j => {
-      if (!o[j].startsWith('https://') && !o[j].startsWith('https://')) o[j] = `${cfg.api}/${o[j]}`
+      if (!o[j].startsWith('https://') && !o[j].startsWith('https://'))
+        o[j] = `${cfg[cfg.mode].api}/${o[j]}`
     })
   } else if (!api[k].startsWith('https://') && !api[k].startsWith('https://')) {
-    api[k] = `${cfg.api}/${api[k]}`
+    // @ts-ignore
+    api[k] = `${cfg[cfg.mode].api}/${api[k]}`
   }
 })
 

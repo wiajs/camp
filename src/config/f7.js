@@ -142,6 +142,7 @@ const config = {
     // 'pc',
   ],
   themeColor: '#007aff',
+  // 重新定义颜色值
   colors: {
     red: '#ff3b30',
     // green: '#4cd964',
@@ -161,4 +162,5 @@ const config = {
   },
 }
 
-module.exports = config
+// module.exports = config
+export default config

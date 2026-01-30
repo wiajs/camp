@@ -1,17 +1,20 @@
 {
-  "name": "camp",
+  "name": "@wiajs/codecamp",
   "author": "nuoya",
   "version": "1.1.1",
   "description": "code camp",
+  "type": "module",
   "scripts": {
     "build-rs": "cross-env NODE_ENV=production rspack build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "cross-env NODE_ENV=development WIA_MODE=local gulp",
-    "build": "cross-env NODE_ENV=production gulp",
+    "bin": "swc --config-file ./.swcrc ./src -d ./bin -w --strip-leading-paths",
+    "build": "cross-env NODE_ENV=production WIA_MODE=local gulp -f gulpfile.js",
+    "pub": "cross-env NODE_ENV=development WIA_MODE=pub gulp -f gulpfile.js",
+    "pubx": "cross-env NODE_ENV=development WIA_MODE=pub gulp --gulpfile wiamake.js build",
     "build:js": "cross-env NODE_ENV=production rspack build",
     "esbuild": "esbuild bin/entry.js --bundle --outfile=bin/out.js",
-    "swc": "swc --config-file ./.swcrc src -w -d build",
-    "pub": "cross-env NODE_ENV=development WIA_MODE=pub gulp --gulpfile wiamake.js build"
+    "swc": "swc --config-file ./.swcrc src -w -d build"
   },
   "keywords": [],
   "license": "MIT",

@@ -1,5 +1,5 @@
-import Uploader from '@wiajs/ui/uploader';
-import * as store from './store';
+import Uploader from '@wiajs/ui/uploader'
+import * as store from './store'
 
 function uploader(opt, pg) {
   const def = {
@@ -15,9 +15,9 @@ function uploader(opt, pg) {
     quality: 0.5, // 压缩比
 
     // xhr配置
-    headers: {'x-wia-token': store.get('token')}, // 添加额外参数
-  };
-  return new Uploader({...def, ...opt});
+    headers: {'x-wia-token': store.get('token', true)}, // 添加额外参数
+  }
+  return new Uploader({...def, ...opt})
 }
 
-export {uploader};
+export {uploader}

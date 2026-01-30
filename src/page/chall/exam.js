@@ -170,14 +170,17 @@ function bind(param) {
   // @ts-ignore
   _.btnRun.click(async ev => {
     // if (_ext === 'wia') loadWia()
-
-    const cnt = check(_r)
-    const rs = await submit(_r, cnt)
-    // 检测成功、提交成功，显示进度
-    if ((cnt === _r.tests.length && rs.code) === 200 && rs.data.passed) {
-      await setProgress(rs.data)
-      _.passed.show()
-    } else _startTime = new Date() // 重新计时
+    try {
+      const cnt = check(_r)
+      const rs = await submit(_r, cnt)
+      // 检测成功、提交成功，显示进度
+      if ((cnt === _r.tests.length && rs.code) === 200 && rs.data.passed) {
+        await setProgress(rs.data)
+        _.passed.show()
+      } else _startTime = new Date() // 重新计时
+    } catch (e) {
+      log.err(e, 'run')
+    }
   })
 
   _.btnReset.click(() => reset(_r))
@@ -193,7 +196,7 @@ function bind(param) {
   _.txCode.on('editor:ready', () => {})
   _.name('btnBack').click(() => {
     // debugger
-    $.go('master', {path: 'course/last'})
+    $.go('master', {to: 'course/last'})
   })
 
   window.addEventListener(
@@ -908,7 +911,7 @@ async function setProgress(rs) {
 }
 
 /**
- * 向页面添加js，直接写入 div中无效
+ * 向当前页面（层）添加js，直接写入 div中无效
  * @param {string} name
  * @param {string} src
  * @param {Page} pg
@@ -926,7 +929,9 @@ function addJsSrc(name, src, pg) {
 }
 
 /**
- * 向页面添加js code，直接写入 div中无效
+ * 向页面添加js code
+ * 在 js code 中按次序加载 js 文件，加载完毕再执行 后续代码
+ * 
  * @param {string} id
  * @param {string} code
  * @param {Page} pg
@@ -941,7 +946,7 @@ function addJsCode(id, code, pg) {
   sc.appendChild(document.createTextNode(code))
   // $('body').append(sc)
   // _.append(sc) // 带 自动执行功能，页面也会执行，相当于执行两次
-  _.dom.appendChild(sc)
+  _.dom.appendChild(sc) // 会自动执行当前代码
 }
 
 /**
@@ -964,7 +969,8 @@ function loadEditor(pg) {
   //   pg
   // )
 
-  // 按次序加载js资源后初始化 Monaco Editor，使用 window.monaco 访问
+  // 按次序加载js资源后，开始初始化 Monaco Editor，使用 window.monaco 访问
+  // 直接插入 js文件，不能确保加载次序和加载完成
   const id = `js-${pg.id}-load`
   const code = `
   (async () => {  

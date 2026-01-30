@@ -36,7 +36,7 @@ module.exports = {
     // (does not apply to resolving to loaders)
     modules: ['node_modules', path.resolve(__dirname, '.')],
     // directories where to look for modules
-    extensions: ['.js', '.ts', '.mjs', '.cjs', '.jsx', '.tsx', '.json', '.css', '.svg'],
+    extensions: ['.js', '.ts', '.mjs', '.cjs', '.jsx', '.tsx', '.json', '.css', '.svg', '.wasm'],
     // fallback: {crypto: false},
     // extensions that are used
   },

@@ -105,9 +105,9 @@ function init() {
 function bind() {}
 
 /**
- * master 发起的二次路由
+ * master 通过to，发起二次路由
  * 避免循环路由，#/nuoya/camp/master 会导致循环路由
- * 缺省 course/index
+ * 缺省 course/
  */
 function router() {
   const hash = location.hash.replace(/^#!|^#/, '')

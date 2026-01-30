@@ -14,7 +14,8 @@ export default class Api {
    */
   constructor(name) {
     this.name = name
-    this.url = `${cfg.api}/${name}`
+    // @ts-ignore
+    this.url = `${cfg[cfg.mode].api}/${name}`
   }
 
   /**

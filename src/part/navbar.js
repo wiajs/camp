@@ -6,7 +6,8 @@ import {log as Log} from '@wiajs/util'
 import Api from '../util/api'
 import * as store from '../util/store'
 
-const _html = require('./navbar.html').default
+// const _html = require('./navbar.html').default
+import _html from './navbar.html'
 
 const def = {
   active: {p: '首页'},

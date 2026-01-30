@@ -8,7 +8,7 @@ import cfg from '../config/app'
  * @param {Object} data 数据
  */
 function get(url, data) {
-  const token = store.get(cfg.token)
+  const token = store.get(cfg.token, true)
   return $.get(url, data, {'x-wia-token': token})
 }
 
@@ -19,7 +19,7 @@ function get(url, data) {
  * @param {Object} data 数据
  */
 function post(url, data) {
-  const token = store.get(cfg.token)
+  const token = store.get(cfg.token, true)
   return $.post(url, data, {'x-wia-token': token})
 }
 
@@ -97,4 +97,4 @@ function promisify(f, type = 1) {
     })
 }
 
-export {get, post, toYuan, toFen, promisify, delay};
+export {get, post, toYuan, toFen, promisify, delay}

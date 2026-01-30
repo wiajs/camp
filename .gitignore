@@ -1,9 +1,12 @@
 node_modules
-dist
-wiafile.yml
+/dist
+/pub
+/img
+/data
 /src/pages.js
 /src/lib
 /src/ui
+wiafile.yml
 
 # zip
 *.zip

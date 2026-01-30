@@ -36,7 +36,10 @@
     "module": {
   // 问题：es6 调式模式没问题，生产模式报错，提示函数找不到，可能是一些函数被摇树掉了，cjs 是作为整体输出，不摇树
   // babel 编译 输出 es6 没有问题，原因不明
-      "type": "es6" // 输出模块类型  "es6",  "commonjs"
+      "type": "es6", // 输出模块类型  "es6",  "commonjs"，项目是module的，输出 es6，否则 commonjs，便于直接运行测试、调试
+      "resolve": {
+        "extensions": [".js"], // 自动补充的扩展名
+      }
     },
     "minify": false, // 压缩代码，发布是需要
     "sourceMaps": false
@@ -61,7 +64,10 @@
       "keepClassNames": true // 保留原始类名
     },
     "module": {
-      "type": "commonjs"
+      "type": "es6", // 输出模块类型  "es6",  "commonjs"，项目是module的，输出 es6，否则 commonjs，便于直接运行测试、调试
+      "resolve": {
+        "extensions": [".ts"], // 自动补充的扩展名
+      }      
     },
     "minify": false, // 压缩代码，发布是需要
     "sourceMaps": false
